@@ -1,4 +1,3 @@
-// Change made on $(date) 
 /**
  * Import function triggers from their respective submodules:
  *
