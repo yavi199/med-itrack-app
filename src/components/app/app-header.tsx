@@ -10,24 +10,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from 'next/image';
 
-const AppLogo = (props: any) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-5.5-4-4.5 2.5-6.5 4S2 13 2 15a7 7 0 0 0 7 7z" />
-    <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-5.5-4-4.5 2.5-6.5 4S2 13 2 15a7 7 0 0 0 7 7z" />
-    <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-5.5-4-4.5 2.5-6.5 4S2 13 2 15a7 7 0 0 0 7 7z" />
-  </svg>
-);
-
-
 export function AppHeader() {
   const { user, userProfile, logout } = useAuth();
   const router = useRouter();
@@ -55,7 +37,7 @@ export function AppHeader() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <Link href="/" className="flex items-center gap-3">
-            <AppLogo className="h-12 w-12 text-primary" />
+            <Image src="https://firebasestorage.googleapis.com/v0/b/med-itrack-nduik.appspot.com/o/app-logo.png?alt=media" alt="Med-iTrack Logo" width={48} height={48} className="h-12 w-12" />
             <div className="grid">
               <h1 className="text-2xl font-bold font-headline text-gray-800 dark:text-gray-200">
                 Med-iTrack

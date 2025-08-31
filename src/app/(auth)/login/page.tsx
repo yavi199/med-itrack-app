@@ -13,24 +13,6 @@ import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-const AppLogo = (props: any) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-5.5-4-4.5 2.5-6.5 4S2 13 2 15a7 7 0 0 0 7 7z" />
-    <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-5.5-4-4.5 2.5-6.5 4S2 13 2 15a7 7 0 0 0 7 7z" />
-    <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-5.5-4-4.5 2.5-6.5 4S2 13 2 15a7 7 0 0 0 7 7z" />
-  </svg>
-);
-
-
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -65,7 +47,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="text-center">
             <div className="flex justify-center items-center gap-3 mb-4">
-                <AppLogo className="h-14 w-14 text-primary" />
+                <Image src="https://firebasestorage.googleapis.com/v0/b/med-itrack-nduik.appspot.com/o/app-logo.png?alt=media" alt="Med-iTrack Logo" width={56} height={56} className="h-14 w-14" />
                 <div className='grid text-left'>
                     <h1 className="text-3xl font-bold font-headline text-gray-800 dark:text-gray-200">Med-iTrack</h1>
                     <p className="text-sm text-muted-foreground font-medium tracking-wide">Precision you can trace.</p>

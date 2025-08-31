@@ -14,23 +14,7 @@ import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import type { UserRole, Service, GeneralService, SubServiceArea } from '@/lib/types';
 import { GeneralServices, SubServiceAreas } from '@/lib/types';
-
-const AppLogo = (props: any) => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-5.5-4-4.5 2.5-6.5 4S2 13 2 15a7 7 0 0 0 7 7z" />
-      <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-5.5-4-4.5 2.5-6.5 4S2 13 2 15a7 7 0 0 0 7 7z" />
-      <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-5.5-4-4.5 2.5-6.5 4S2 13 2 15a7 7 0 0 0 7 7z" />
-    </svg>
-  );
+import Image from 'next/image';
 
 const roles: UserRole[] = ["administrador", "enfermero", "tecnologo", "transcriptora"];
 const modalities: Service[] = ["TAC", "RX", "ECO", "MAMO", "DENSITOMETRIA", "RMN"];
@@ -120,7 +104,7 @@ export default function SignupPage() {
       <Card className="w-full max-w-lg shadow-2xl">
         <CardHeader className="text-center">
             <div className="flex justify-center items-center gap-3 mb-4">
-                <AppLogo className="h-14 w-14 text-primary" />
+                 <Image src="https://firebasestorage.googleapis.com/v0/b/med-itrack-nduik.appspot.com/o/app-logo.png?alt=media" alt="Med-iTrack Logo" width={56} height={56} className="h-14 w-14" />
             </div>
           <CardTitle className="text-2xl">Crear Nuevo Usuario</CardTitle>
           <CardDescription>Registra un nuevo miembro del equipo</CardDescription>
