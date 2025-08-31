@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { AppHeader } from "@/components/app/app-header";
 import { NewRequestCard } from "@/components/app/new-request-card";
 import { StudyTable } from "@/components/app/study-table";
@@ -53,7 +53,6 @@ export default function HomePage() {
   const [summary, setSummary] = useState<Summary>({ ECO: 0, RX: 0, TAC: 0, RMN: 0 });
   const [serviceSummary, setServiceSummary] = useState<ServiceSummary>({ URG: 0, HOSP: 0, UCI: 0, 'C.EXT': 0 });
   const [studies, setStudies] = useState<Study[]>([]);
-  const [filteredStudies, setFilteredStudies] = useState<Study[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState<ActiveFilters>({ modalities: [], services: [], statuses: [] });
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -69,9 +68,9 @@ export default function HomePage() {
   }, [user, authLoading, router]);
 
   useEffect(() => {
-    if (!user || !userProfile) return;
+    if (!user) return;
     
-    // Always fetch all studies ordered by date
+    // Always fetch all studies ordered by date, as filtering by role will happen client-side
     const q = query(collection(db, "studies"), orderBy("requestDate", "desc"));
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -120,10 +119,10 @@ export default function HomePage() {
     });
 
     return () => unsubscribe();
-  }, [user, userProfile]);
+  }, [user]);
 
-  useEffect(() => {
-    if (!userProfile) return;
+  const filteredStudies = useMemo(() => {
+    if (!userProfile) return [];
     let filteredData = studies;
     
     // Client-side filtering for roles
@@ -136,10 +135,7 @@ export default function HomePage() {
         filteredData = filteredData.filter(item => 
             item.studies[0].modality === userProfile.servicioAsignado
         );
-    } else if (userProfile.rol === 'administrador') {
-        // No role-based filtering for admin
-    }
-
+    } // No role-based filtering for admin, they see everything
 
     const lowercasedFilter = searchTerm.toLowerCase();
     // Filter by search term
@@ -186,8 +182,11 @@ export default function HomePage() {
         });
     }
 
-    setFilteredStudies(filteredData);
-    
+    return filteredData;
+  }, [searchTerm, studies, activeFilters, dateRange, userProfile]);
+
+  useEffect(() => {
+    // This effect now only calculates summaries and is safe from loops
     const pendingStudies = studies.filter(s => s.status === 'Pendiente');
     const newSummary: Summary = { ECO: 0, RX: 0, TAC: 0, RMN: 0 };
     const newServiceSummary: ServiceSummary = { URG: 0, HOSP: 0, UCI: 0, 'C.EXT': 0 };
@@ -205,8 +204,7 @@ export default function HomePage() {
     
     setSummary(newSummary);
     setServiceSummary(newServiceSummary);
-
-  }, [searchTerm, studies, activeFilters, dateRange]);
+  }, [studies]); // Only depends on studies now
 
   if (authLoading || !user || !userProfile || loading) {
     return (
