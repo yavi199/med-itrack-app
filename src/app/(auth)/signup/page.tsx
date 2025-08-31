@@ -72,7 +72,8 @@ export default function SignupPage() {
 
   const handleGeneralServiceChange = (value: GeneralService) => {
     setServicioAsignado(value);
-    setSubServicioAsignado(SubServiceAreas[value][0]);
+    const subServices = SubServiceAreas[value];
+    setSubServicioAsignado(subServices[0] as SubServiceArea);
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -189,7 +190,7 @@ export default function SignupPage() {
                             <SelectValue placeholder="Selecciona..." />
                         </SelectTrigger>
                         <SelectContent>
-                            {servicioAsignado && SubServiceAreas[servicioAsignado as GeneralService]?.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                            {servicioAsignado && SubServiceAreas[servicioAsignado as GeneralService]?.map(s => <SelectItem key={s} value={s}>{s as string}</SelectItem>)}
                         </SelectContent>
                     </Select>
                 </div>

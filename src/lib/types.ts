@@ -9,14 +9,14 @@ export const GeneralServices = ["URG", "HOSP", "UCI", "C.EXT"] as const;
 export type GeneralService = typeof GeneralServices[number];
 
 // These are the sub-areas for each service
-export const SubServiceAreas = {
+export const SubServiceAreas: Record<GeneralService, readonly string[]> = {
     URG: ["TRIAGE", "OBS1", "OBS2"],
     HOSP: ["HOSP 2", "HOSP 4"],
     UCI: ["UCI 2", "UCI 3", "UCI NEO"],
     "C.EXT": ["AMB"],
-} as const;
+};
 
-export type SubServiceArea<T extends GeneralService = GeneralService> = T extends GeneralService ? typeof SubServiceAreas[T][number] : never;
+export type SubServiceArea = SubServiceAreas[keyof SubServiceAreas][number];
 
 
 export type UserProfile = {
