@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import React, { useState } from "react";
@@ -65,7 +66,7 @@ type StudyTableProps = {
 
 const statusConfig = {
     'Pendiente': { icon: Clock, className: 'bg-red-600 dark:bg-red-700 border-red-600 dark:border-red-700 text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Pendiente' },
-    'Completado': { icon: CheckCircle, className: 'bg-green-600 dark:bg-green-700 border-green-600 dark:border-green-700 text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Completado' },
+    'Completado': { icon: CheckCircle, className: 'bg-[hsl(120,100%,30.4%)] border-[hsl(120,100%,30.4%)] text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Completado' },
     'Leído': { icon: BookOpenCheck, className: 'bg-blue-600 dark:bg-blue-700 border-blue-600 dark:border-blue-700 text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Leído' },
     'Cancelado': { icon: XCircle, className: 'bg-orange-500 dark:bg-orange-600 border-orange-500 dark:border-orange-600 text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Cancelado' },
 };
@@ -422,10 +423,10 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                                     <Badge variant="outline" className="flex items-center justify-center w-12 h-10 border-2 font-semibold rounded-md text-sm">{study.modality}</Badge>
                                                     <div>
                                                         <div className="uppercase text-sm leading-tight font-bold">
-                                                            {study.nombre} <span className="text-gray-500 font-bold">CUPS: {study.cups}</span>
+                                                            {study.nombre} <span className="font-bold text-gray-500">CUPS: {study.cups}</span>
                                                         </div>
-                                                        <div className="text-sm text-muted-foreground">
-                                                            <span>CIE10: {req.diagnosis.code}</span>
+                                                        <div className="text-sm">
+                                                            <span className="text-black dark:text-white">CIE10: {req.diagnosis.code}</span>
                                                             {study.details && (
                                                                 <>
                                                                     <span className="mx-2">|</span>
@@ -607,5 +608,7 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
     
 
 
+
+    
 
     
