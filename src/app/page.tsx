@@ -75,20 +75,14 @@ export default function HomePage() {
 
     // Role-based query filtering
     if (userProfile.rol === 'enfermero') {
+        // Query only by main service to avoid complex index, will filter sub-service on client
         queryConstraints.push(where("service", "==", userProfile.servicioAsignado));
-        if (userProfile.subServicioAsignado) {
-            queryConstraints.push(where("subService", "==", userProfile.subServicioAsignado));
-        }
-    } else if (userProfile.rol === 'tecnologo' || userProfile.rol === 'transcriptora') {
-        // This query is a bit more complex. We filter by modality on the client side
-        // because we can't do an 'array-contains' on a nested field easily without more complex data structures.
     }
-    // Admin sees all
-
+    
     const q = query(collection(db, "studies"), ...queryConstraints);
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const studiesData: Study[] = [];
+        let studiesData: Study[] = [];
         
         querySnapshot.forEach((doc) => {
             const data = doc.data();
@@ -125,7 +119,15 @@ export default function HomePage() {
             });
         });
 
+        // For nurses, apply the sub-service filter on the client-side
+        if (userProfile.rol === 'enfermero' && userProfile.subServicioAsignado) {
+            studiesData = studiesData.filter(s => s.subService === userProfile.subServicioAsignado);
+        }
+
         setStudies(studiesData);
+        setLoading(false);
+    }, (error) => {
+        console.error("Error fetching studies:", error);
         setLoading(false);
     });
 
@@ -136,7 +138,7 @@ export default function HomePage() {
     let filteredData = studies;
     const lowercasedFilter = searchTerm.toLowerCase();
 
-    // Client-side filtering for roles that need it
+    // Client-side filtering for roles that need it (technologist, transcriber)
     if (userProfile?.rol === 'tecnologo' || userProfile?.rol === 'transcriptora') {
         filteredData = filteredData.filter(item => 
             item.studies[0].modality === userProfile.servicioAsignado
