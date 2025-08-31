@@ -95,10 +95,17 @@ export default function SignupPage() {
       });
       router.push('/');
     } catch (error: any) {
+        let description = 'No se pudo crear el usuario. Intenta de nuevo.';
+        if (error.code === 'auth/email-already-in-use') {
+            description = 'Este correo electrónico ya está registrado. Si eliminaste el usuario, asegúrate de hacerlo desde el panel de Autenticación de Firebase.';
+        } else if (error.message) {
+            description = error.message;
+        }
+
       toast({
         variant: 'destructive',
         title: 'Error de Registro',
-        description: error.message || 'No se pudo crear el usuario. Intenta de nuevo.',
+        description: description,
       });
     } finally {
       setLoading(false);
