@@ -121,13 +121,17 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
         const studyRef = doc(db, "studies", studyId);
         try {
             const updateData: any = { status: newStatus };
-            if (newStatus === 'Completado' || newStatus === 'Leído') {
+            if (newStatus === 'Completado') {
                 updateData.completionDate = serverTimestamp();
+            } else if (newStatus === 'Leído') {
+                updateData.readingDate = serverTimestamp();
             } else if (newStatus === 'Cancelado') {
                  updateData.completionDate = serverTimestamp();
+                 updateData.readingDate = deleteField();
             }
              if (newStatus === 'Pendiente') {
                 updateData.completionDate = deleteField();
+                updateData.readingDate = deleteField();
                 updateData.cancellationReason = deleteField();
             }
 
@@ -413,14 +417,17 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                                 <div className="flex items-start gap-3">
                                                     <Badge variant="outline" className="flex items-center justify-center w-12 h-10 border-2 font-semibold rounded-md text-sm">{study.modality}</Badge>
                                                     <div>
-                                                        <div className="uppercase text-sm leading-tight">
-                                                            {study.nombre} <span className="font-bold text-gray-500">CUPS: {study.cups}</span>
+                                                        <div className="uppercase text-sm leading-tight font-bold">
+                                                            {study.nombre}
                                                         </div>
-                                                        <div className="text-xs">
+                                                        <div className="text-sm">
+                                                            <span className="text-gray-500 font-bold">CUPS: {study.cups}</span>
+                                                        </div>
+                                                        <div className="text-sm">
                                                             DX: {req.diagnosis.code} - {req.diagnosis.description}
                                                         </div>
                                                         {study.details && (
-                                                            <div className="text-blue-600 dark:text-blue-400 text-xs font-bold">
+                                                            <div className="text-blue-600 dark:text-blue-400 text-sm font-bold">
                                                                 OBS: {study.details}
                                                             </div>
                                                         )}
@@ -429,11 +436,12 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                             </TableCell>
                                             <TableCell className="p-2 align-top text-center text-xs space-y-1">
                                                 <div className="font-medium text-red-600">{formatDate(req.requestDate)}</div>
-                                                {req.status === 'Completado' ? (
+                                                {req.completionDate && (
                                                     <div className="font-medium text-green-600">{formatDate(req.completionDate)}</div>
-                                                ) : req.status === 'Leído' ? (
-                                                    <div className="font-medium text-blue-600">{formatDate(req.completionDate)}</div>
-                                                ) : null}
+                                                )}
+                                                {req.readingDate && (
+                                                    <div className="font-medium text-blue-600">{formatDate(req.readingDate)}</div>
+                                                )}
                                             </TableCell>
                                             <TableCell className="p-1 text-right align-top">
                                                 <AlertDialog>

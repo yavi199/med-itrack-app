@@ -117,6 +117,7 @@ export default function HomePage() {
                 },
                 requestDate: data.requestDate,
                 completionDate: data.completionDate,
+                readingDate: data.readingDate,
                 cancellationReason: data.cancellationReason
             });
         });

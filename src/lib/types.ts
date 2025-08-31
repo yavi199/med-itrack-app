@@ -60,5 +60,8 @@ export type Study = {
     completionDate: {
         toDate: () => Date;
     } | null;
+    readingDate: {
+        toDate: () => Date;
+    } | null;
     cancellationReason?: string;
 };
