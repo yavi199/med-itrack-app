@@ -6,9 +6,9 @@ import { AppHeader } from "@/components/app/app-header";
 import { NewRequestCard } from "@/components/app/new-request-card";
 import { StudyTable } from "@/components/app/study-table";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { collection, query, onSnapshot, orderBy, where } from 'firebase/firestore';
+import { collection, query, onSnapshot, orderBy, where, QueryConstraint } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Study } from '@/lib/types';
+import { Study, GeneralService } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
@@ -28,7 +28,7 @@ type ServiceSummary = {
     URG: number;
     HOSP: number;
     UCI: number;
-    'C. EXT': number;
+    'C.EXT': number;
 }
 
 type ActiveFilters = {
@@ -47,11 +47,11 @@ const getModality = (studyName: string): string => {
 }
 
 export default function HomePage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, userProfile, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const [summary, setSummary] = useState<Summary>({ ECO: 0, RX: 0, TAC: 0, RMN: 0 });
-  const [serviceSummary, setServiceSummary] = useState<ServiceSummary>({ URG: 0, HOSP: 0, UCI: 0, 'C. EXT': 0 });
+  const [serviceSummary, setServiceSummary] = useState<ServiceSummary>({ URG: 0, HOSP: 0, UCI: 0, 'C.EXT': 0 });
   const [studies, setStudies] = useState<Study[]>([]);
   const [filteredStudies, setFilteredStudies] = useState<Study[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -69,11 +69,23 @@ export default function HomePage() {
   }, [user, authLoading, router]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !userProfile) return;
     
-    // The status filter will be applied on the client side for now to avoid complex queries
-    // or needing to create a new index for every combination.
-    const q = query(collection(db, "studies"), orderBy("requestDate", "desc"));
+    const queryConstraints: QueryConstraint[] = [orderBy("requestDate", "desc")];
+
+    // Role-based query filtering
+    if (userProfile.rol === 'enfermero') {
+        queryConstraints.push(where("service", "==", userProfile.servicioAsignado));
+        if (userProfile.subServicioAsignado) {
+            queryConstraints.push(where("subService", "==", userProfile.subServicioAsignado));
+        }
+    } else if (userProfile.rol === 'tecnologo' || userProfile.rol === 'transcriptora') {
+        // This query is a bit more complex. We filter by modality on the client side
+        // because we can't do an 'array-contains' on a nested field easily without more complex data structures.
+    }
+    // Admin sees all
+
+    const q = query(collection(db, "studies"), ...queryConstraints);
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const studiesData: Study[] = [];
@@ -84,13 +96,13 @@ export default function HomePage() {
             const modality = getModality(firstStudy.nombre || '');
             
             let service = (data.service || 'N/A').toUpperCase();
-            if (service === 'C.EXT') service = 'C. EXT';
-
+            if (service === 'C.EXT') service = 'C.EXT';
 
              studiesData.push({
                 id: doc.id,
                 status: data.status || 'Pendiente',
-                service: service,
+                service: service as GeneralService,
+                subService: data.subService || 'N/A',
                 patient: {
                     fullName: data.patient?.fullName || 'N/A',
                     id: data.patient?.id || 'N/A',
@@ -118,11 +130,18 @@ export default function HomePage() {
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, userProfile]);
 
   useEffect(() => {
     let filteredData = studies;
     const lowercasedFilter = searchTerm.toLowerCase();
+
+    // Client-side filtering for roles that need it
+    if (userProfile?.rol === 'tecnologo' || userProfile?.rol === 'transcriptora') {
+        filteredData = filteredData.filter(item => 
+            item.studies[0].modality === userProfile.servicioAsignado
+        );
+    }
 
     // Filter by search term
     if (searchTerm) {
@@ -160,24 +179,19 @@ export default function HomePage() {
         filteredData = filteredData.filter(item => {
             if (!item.requestDate) return false;
             const itemDate = item.requestDate.toDate();
-            // Set 'from' to the beginning of the day
             const fromDate = new Date(dateRange.from!);
             fromDate.setHours(0, 0, 0, 0);
-
-            // Set 'to' to the end of the day if it exists, otherwise use 'from'
             const toDate = dateRange.to ? new Date(dateRange.to) : new Date(dateRange.from!);
             toDate.setHours(23, 59, 59, 999);
-
             return itemDate >= fromDate && itemDate <= toDate;
         });
     }
 
     setFilteredStudies(filteredData);
     
-    // Recalculate summary counts for pending studies
     const pendingStudies = studies.filter(s => s.status === 'Pendiente');
     const newSummary: Summary = { ECO: 0, RX: 0, TAC: 0, RMN: 0 };
-    const newServiceSummary: ServiceSummary = { URG: 0, HOSP: 0, UCI: 0, 'C. EXT': 0 };
+    const newServiceSummary: ServiceSummary = { URG: 0, HOSP: 0, UCI: 0, 'C.EXT': 0 };
 
     pendingStudies.forEach(study => {
         const modality = study.studies[0].modality;
@@ -193,10 +207,9 @@ export default function HomePage() {
     setSummary(newSummary);
     setServiceSummary(newServiceSummary);
 
+  }, [searchTerm, studies, activeFilters, dateRange, userProfile]);
 
-  }, [searchTerm, studies, activeFilters, dateRange]);
-
-  if (authLoading || !user) {
+  if (authLoading || !user || !userProfile) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -246,9 +259,15 @@ export default function HomePage() {
       <AppHeader />
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
-          <NewRequestCard />
+          
+          {(userProfile.rol === 'administrador' || userProfile.rol === 'enfermero') && (
+            <NewRequestCard />
+          )}
 
-          <Card className="shadow-lg border-border xl:col-span-2 flex flex-col">
+          <Card className={cn(
+            "shadow-lg border-border flex flex-col",
+            (userProfile.rol === 'administrador' || userProfile.rol === 'enfermero') ? "xl:col-span-2" : "xl:col-span-3"
+          )}>
             <CardHeader className="p-4">
               <CardTitle className="font-headline font-semibold text-lg text-foreground">
                 Resumen y Filtros de Estudios Pendientes

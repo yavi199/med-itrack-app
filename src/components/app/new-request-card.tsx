@@ -22,6 +22,8 @@ import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Label } from '../ui/label';
 import { useAuth } from '@/context/auth-context';
+import { SubServiceAreas, GeneralService } from '@/lib/types';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 type UploadedFile = {
     id: string;
@@ -45,6 +47,11 @@ export function NewRequestCard() {
     const [pdfGenerated, setPdfGenerated] = useState(false);
     const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
     const [showMultiUploadDialog, setShowMultiUploadDialog] = useState(false);
+
+    // State for manual entry form
+    const [manualService, setManualService] = useState<GeneralService>('URG');
+    const [manualSubService, setManualSubService] = useState(SubServiceAreas['URG'][0]);
+
 
     const { toast } = useToast();
 
@@ -136,8 +143,8 @@ export function NewRequestCard() {
         setShowMultiUploadDialog(false);
     }
 
-    const handleCreateRequest = async (dataToSave: ExtractOrderOutput | null, isMulti = false) => {
-        if (!dataToSave) return;
+    const handleCreateRequest = async (dataToSave: ExtractOrderOutput | null, isMulti = false, manualData?: {service: GeneralService, subService: string}) => {
+        if (!dataToSave || !userProfile) return;
         
         if (!isMulti) {
             setIsCreating(true);
@@ -145,6 +152,18 @@ export function NewRequestCard() {
         }
 
         try {
+            // Determine service and subservice
+            let service: GeneralService;
+            let subService: string;
+
+            if (manualData) { // From manual entry
+                service = manualData.service;
+                subService = manualData.subService;
+            } else { // From file upload
+                service = userProfile.servicioAsignado as GeneralService;
+                subService = userProfile.subServicioAsignado!;
+            }
+
             const studyData = {
                 patient: { ...dataToSave.patient },
                 studies: dataToSave.studies.map(s => ({ ...s })),
@@ -154,7 +173,8 @@ export function NewRequestCard() {
                 status: 'Pendiente',
                 requestDate: serverTimestamp(),
                 completionDate: null,
-                service: 'URG',
+                service: service,
+                subService: subService
             };
 
             const docRef = await addDoc(collection(db, "studies"), studyData);
@@ -194,6 +214,7 @@ export function NewRequestCard() {
         let errorCount = 0;
 
         for (const file of successfulFiles) {
+            // All multi-uploads come from one user, so use their profile for service/subservice
             const result = await handleCreateRequest(file.extractedData, true);
             if (result.success) {
                 successCount++;
@@ -258,7 +279,7 @@ export function NewRequestCard() {
             physician: { fullName: formData.get('physicianName') as string, registryNumber: formData.get('physicianRegistry') as string, specialty: formData.get('physicianSpecialty') as string },
             order: { date: formData.get('orderDate') as string, institutionName: formData.get('institutionName') as string, admissionNumber: formData.get('admissionNumber') as string }
         };
-        await handleCreateRequest(data);
+        await handleCreateRequest(data, false, { service: manualService, subService: manualSubService });
     };
 
     const handleDragEnter = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setDragging(true); };
@@ -274,7 +295,11 @@ export function NewRequestCard() {
     const handleIdInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter' && patientId) {
             e.preventDefault();
-            setShowManualEntry(true);
+            if (userProfile?.rol === 'administrador') {
+              setShowManualEntry(true);
+            } else {
+              toast({ variant: "destructive", title: "Acción no permitida", description: "Solo los administradores pueden crear solicitudes manuales." });
+            }
         }
     };
     
@@ -321,18 +346,20 @@ export function NewRequestCard() {
                             )}
                         </div>
                     </label>
-                    <div className="relative mt-auto">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder="Crear solicitud por ID de paciente"
-                            className="pl-10 h-10 text-sm"
-                            value={patientId}
-                            onChange={(e) => setPatientId(e.target.value)}
-                            onKeyDown={handleIdInputKeyDown}
-                            disabled={isProcessing || isCreating}
-                            suppressHydrationWarning
-                        />
-                    </div>
+                    {userProfile?.rol === 'administrador' && (
+                        <div className="relative mt-auto">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Crear solicitud por ID de paciente"
+                                className="pl-10 h-10 text-sm"
+                                value={patientId}
+                                onChange={(e) => setPatientId(e.target.value)}
+                                onKeyDown={handleIdInputKeyDown}
+                                disabled={isProcessing || isCreating}
+                                suppressHydrationWarning
+                            />
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
@@ -470,6 +497,36 @@ export function NewRequestCard() {
                                     <Input id="entidad" name="entidad" required />
                                 </div>
                             </div>
+                            
+                            <h3 className="font-semibold text-sm pt-4">Asignación de Servicio</h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="manual-service">Servicio General</Label>
+                                    <Select 
+                                        name="manualService"
+                                        value={manualService} 
+                                        onValueChange={(v: GeneralService) => {
+                                            setManualService(v);
+                                            setManualSubService(SubServiceAreas[v][0]);
+                                        }}
+                                    >
+                                        <SelectTrigger id="manual-service"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {Object.keys(SubServiceAreas).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="manual-subservice">Área de Servicio</Label>
+                                    <Select name="manualSubService" value={manualSubService} onValueChange={setManualSubService}>
+                                        <SelectTrigger id="manual-subservice"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {SubServiceAreas[manualService].map(ss => <SelectItem key={ss} value={ss}>{ss}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
 
                             <h3 className="font-semibold text-sm pt-4">Datos de la Orden</h3>
                              <div className="grid grid-cols-2 gap-4">
@@ -544,5 +601,3 @@ export function NewRequestCard() {
         </>
     );
 }
-
-    

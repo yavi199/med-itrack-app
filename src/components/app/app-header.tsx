@@ -42,6 +42,14 @@ export function AppHeader() {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   }
 
+  const getServiceDisplay = () => {
+    if (!userProfile) return '';
+    if (userProfile.rol === 'enfermero') {
+      return `${userProfile.servicioAsignado} / ${userProfile.subServicioAsignado}`;
+    }
+    return userProfile.servicioAsignado;
+  }
+
   return (
     <header className="bg-card border-b shadow-sm sticky top-0 z-30">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -73,7 +81,7 @@ export function AppHeader() {
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">{userProfile?.nombre}</p>
                       <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                      <p className="text-xs leading-none text-muted-foreground capitalize pt-1 font-semibold">{userProfile?.rol} / {userProfile?.servicioAsignado}</p>
+                      <p className="text-xs leading-none text-muted-foreground capitalize pt-1 font-semibold">{userProfile?.rol} / {getServiceDisplay()}</p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />

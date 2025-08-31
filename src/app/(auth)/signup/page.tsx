@@ -12,8 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import type { UserRole, Service, SubServiceArea } from '@/lib/types';
-import Image from 'next/image';
+import type { UserRole, Service, GeneralService, SubServiceArea } from '@/lib/types';
+import { GeneralServices, SubServiceAreas } from '@/lib/types';
 
 const AppLogo = (props: any) => (
     <svg
@@ -33,8 +33,7 @@ const AppLogo = (props: any) => (
   );
 
 const roles: UserRole[] = ["administrador", "enfermero", "tecnologo", "transcriptora"];
-const services: Service[] = ["TAC", "RX", "ECO", "MAMO", "DENSITOMETRIA", "RMN", "General"];
-const subServiceAreas: SubServiceArea[] = ["TRIAGE", "OBS1", "OBS2", "HOSP 2", "HOSP 4", "UCI 2", "UCI 3", "UCI NEO", "C.EXT"];
+const modalities: Service[] = ["TAC", "RX", "ECO", "MAMO", "DENSITOMETRIA", "RMN"];
 
 
 export default function SignupPage() {
@@ -42,9 +41,10 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [nombre, setNombre] = useState('');
   const [rol, setRol] = useState<UserRole>('enfermero');
-  const [servicioAsignado, setServicioAsignado] = useState<Service | SubServiceArea>('TRIAGE');
+  const [servicioAsignado, setServicioAsignado] = useState<Service | GeneralService>('URG');
+  const [subServicioAsignado, setSubServicioAsignado] = useState<SubServiceArea>('TRIAGE');
   
-  const { signup, userProfile } = useAuth();
+  const { signup } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -58,14 +58,21 @@ export default function SignupPage() {
 
   const handleRoleChange = (value: UserRole) => {
     setRol(value);
-    // Reset service when role changes to avoid invalid combinations
     if (value === 'administrador') {
       setServicioAsignado('General');
+      setSubServicioAsignado(undefined);
     } else if (value === 'enfermero') {
-      setServicioAsignado('TRIAGE');
+      setServicioAsignado('URG');
+      setSubServicioAsignado('TRIAGE');
     } else { // tecnologo or transcriptora
       setServicioAsignado('TAC');
+      setSubServicioAsignado(undefined);
     }
+  }
+
+  const handleGeneralServiceChange = (value: GeneralService) => {
+    setServicioAsignado(value);
+    setSubServicioAsignado(SubServiceAreas[value][0]);
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,6 +92,7 @@ export default function SignupPage() {
         nombre,
         rol,
         servicioAsignado,
+        subServicioAsignado: rol === 'enfermero' ? subServicioAsignado : undefined,
         activo: true
       });
       toast({
@@ -103,21 +111,9 @@ export default function SignupPage() {
     }
   };
 
-  const getServiceOptions = () => {
-    if (rol === 'enfermero') {
-      return subServiceAreas;
-    }
-    if (rol === 'tecnologo' || rol === 'transcriptora') {
-      return services.filter(s => s !== 'General');
-    }
-    return [];
-  };
-
-  const serviceOptions = getServiceOptions();
-
   return (
     <div className="flex items-center justify-center min-h-screen bg-background py-12">
-      <Card className="w-full max-w-md shadow-2xl">
+      <Card className="w-full max-w-lg shadow-2xl">
         <CardHeader className="text-center">
             <div className="flex justify-center items-center gap-3 mb-4">
                 <AppLogo className="h-14 w-14 text-primary" />
@@ -160,32 +156,59 @@ export default function SignupPage() {
                 required
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            
+            <div className="space-y-2">
+                <Label htmlFor="rol">Rol</Label>
+                <Select onValueChange={(value: UserRole) => handleRoleChange(value)} defaultValue={rol}>
+                    <SelectTrigger id="rol">
+                        <SelectValue placeholder="Selecciona un rol" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {roles.map(r => <SelectItem key={r} value={r} className="capitalize">{r}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+
+            {rol === 'enfermero' && (
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <Label htmlFor="rol">Rol</Label>
-                    <Select onValueChange={(value: UserRole) => handleRoleChange(value)} defaultValue={rol}>
-                        <SelectTrigger id="rol">
-                            <SelectValue placeholder="Selecciona un rol" />
+                    <Label htmlFor="servicio-general">Servicio General</Label>
+                    <Select onValueChange={(value: GeneralService) => handleGeneralServiceChange(value)} value={servicioAsignado as GeneralService}>
+                        <SelectTrigger id="servicio-general">
+                            <SelectValue placeholder="Selecciona..." />
                         </SelectTrigger>
                         <SelectContent>
-                            {roles.map(r => <SelectItem key={r} value={r} className="capitalize">{r}</SelectItem>)}
+                            {GeneralServices.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                         </SelectContent>
                     </Select>
                 </div>
-                {rol !== 'administrador' && (
-                    <div className="space-y-2">
-                        <Label htmlFor="servicio">{rol === 'enfermero' ? 'Área de Servicio' : 'Servicio'}</Label>
-                        <Select onValueChange={(value: Service | SubServiceArea) => setServicioAsignado(value)} value={servicioAsignado}>
-                            <SelectTrigger id="servicio">
-                                <SelectValue placeholder="Selecciona una opción" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {serviceOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                )}
-            </div>
+                <div className="space-y-2">
+                    <Label htmlFor="sub-servicio">Área de Servicio</Label>
+                    <Select onValueChange={(value: SubServiceArea) => setSubServicioAsignado(value)} value={subServicioAsignado}>
+                        <SelectTrigger id="sub-servicio">
+                            <SelectValue placeholder="Selecciona..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {servicioAsignado && SubServiceAreas[servicioAsignado as GeneralService]?.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+              </div>
+            )}
+
+            {(rol === 'tecnologo' || rol === 'transcriptora') && (
+                 <div className="space-y-2">
+                    <Label htmlFor="modalidad">Modalidad Asignada</Label>
+                    <Select onValueChange={(value: Service) => setServicioAsignado(value)} value={servicioAsignado as Service}>
+                        <SelectTrigger id="modalidad">
+                            <SelectValue placeholder="Selecciona una modalidad" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {modalities.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+            )}
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

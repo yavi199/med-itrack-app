@@ -4,8 +4,19 @@ export type UserRole = "administrador" | "enfermero" | "tecnologo" | "transcript
 
 export type Service = "TAC" | "RX" | "ECO" | "MAMO" | "DENSITOMETRIA" | "RMN" | "General";
 
-export type GeneralArea = "URG" | "HOSP" | "UCI" | "C.EXT";
-export type SubServiceArea = "TRIAGE" | "OBS1" | "OBS2" | "HOSP 2" | "HOSP 4" | "UCI 2" | "UCI 3" | "UCI NEO" | "C.EXT";
+// These are the main service areas, equivalent to GeneralArea
+export const GeneralServices = ["URG", "HOSP", "UCI", "C.EXT"] as const;
+export type GeneralService = typeof GeneralServices[number];
+
+// These are the sub-areas for each service
+export const SubServiceAreas = {
+    URG: ["TRIAGE", "OBS1", "OBS2"],
+    HOSP: ["HOSP 2", "HOSP 4"],
+    UCI: ["UCI 2", "UCI 3", "UCI NEO"],
+    "C.EXT": ["AMB"],
+} as const;
+
+export type SubServiceArea<T extends GeneralService = GeneralService> = T extends GeneralService ? typeof SubServiceAreas[T][number] : never;
 
 
 export type UserProfile = {
@@ -13,48 +24,19 @@ export type UserProfile = {
     nombre: string;
     email: string;
     rol: UserRole;
-    servicioAsignado: Service | SubServiceArea;
+    // For technologo/transcriptora, this is a modality. For enfermero, it's a GeneralService. For admin, 'General'
+    servicioAsignado: Service | GeneralService; 
+    // This is only relevant for 'enfermero'
+    subServicioAsignado?: SubServiceArea;
     activo: boolean;
-};
-
-export type Order = {
-    id: string;
-    infoPaciente: {
-        fullName: string;
-        id: string;
-        entidad: string;
-        birthDate?: string;
-        sex?: string;
-    };
-    fechaCreacion: { toDate: () => Date; } | null;
-    creadoPorUID: string;
-    servicio: string; // This would be the modality like TAC, RX etc.
-    areaGeneral: GeneralArea;
-    subServicio: SubServiceArea;
-    estado: "Pendiente" | "Agendado" | "En Proceso" | "Leído" | "Completado" | "Cancelado";
-    urlPdfOrden?: string;
-    urlPdfInforme?: string;
-    historialEstado: {
-        usuarioUID: string;
-        fecha: any; 
-        estadoAnterior: string;
-        estadoNuevo: string;
-    }[];
-    // Legacy fields for compatibility. Can be removed after migration.
-    patient?: any;
-    studies?: any;
-    diagnosis?: any;
-    requestDate?: any;
-    completionDate?: any;
-    cancellationReason?: any;
-    status?: any;
 };
     
 // This is the type we will use in the UI, which is slightly different from the DB structure
 export type Study = {
     id: string;
     status: string;
-    service: string;
+    service: GeneralService; // URG, HOSP, UCI, C.EXT
+    subService: SubServiceArea; // TRIAGE, OBS1, etc.
     patient: {
         fullName: string;
         id: string;

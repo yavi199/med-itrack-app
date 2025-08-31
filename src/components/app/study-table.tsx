@@ -19,12 +19,12 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Search, CheckCircle, Clock, XCircle, Loader2, CalendarIcon } from 'lucide-react';
+import { MoreVertical, Search, CheckCircle, Clock, XCircle, Loader2, CalendarIcon, BookOpenCheck } from 'lucide-react';
 import { Card } from '../ui/card';
 import { cn } from "@/lib/utils";
 import { format, differenceInYears } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Study } from "@/lib/types";
+import { Study, GeneralService } from "@/lib/types";
 import { doc, updateDoc, serverTimestamp, deleteField } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from "@/hooks/use-toast";
@@ -66,7 +66,7 @@ type StudyTableProps = {
 const statusConfig = {
     'Pendiente': { icon: Clock, className: 'bg-red-600 dark:bg-red-700 border-red-600 dark:border-red-700 text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Pendiente' },
     'Completado': { icon: CheckCircle, className: 'bg-green-600 dark:bg-green-700 border-green-600 dark:border-green-700 text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Completado' },
-    'Leído': { icon: CheckCircle, className: 'bg-blue-600 dark:bg-blue-700 border-blue-600 dark:border-blue-700 text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Leído' },
+    'Leído': { icon: BookOpenCheck, className: 'bg-blue-600 dark:bg-blue-700 border-blue-600 dark:border-blue-700 text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Leído' },
     'Cancelado': { icon: XCircle, className: 'bg-orange-500 dark:bg-orange-600 border-orange-500 dark:border-orange-600 text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Cancelado' },
 };
 
@@ -81,22 +81,34 @@ const cancellationReasons = [
 export function StudyTable({ studies, loading, searchTerm, setSearchTerm, activeFilters, toggleFilter, dateRange, setDateRange }: StudyTableProps) {
     const { userProfile } = useAuth();
     const { toast } = useToast();
-    const [isUpdating, setIsUpdating] = useState(false);
+    const [isUpdating, setIsUpdating] = useState<string | null>(null);
     const [isCancelling, setIsCancelling] = useState(false);
     const [selectedReason, setSelectedReason] = useState(cancellationReasons[0]);
     const [editingStudy, setEditingStudy] = useState<Study | null>(null);
 
-    const handleQuickStatusChange = async (studyId: string, currentStatus: string) => {
-        if (currentStatus !== 'Pendiente') return;
-        handleStatusChange(studyId, 'Completado');
+    const handleQuickStatusChange = async (study: Study) => {
+        if (!userProfile) return;
+
+        const { id, status } = study;
+        let nextStatus: string | null = null;
+        
+        if (userProfile.rol === 'tecnologo' && status === 'Pendiente') {
+            nextStatus = 'Completado';
+        } else if (userProfile.rol === 'transcriptora' && status === 'Completado') {
+            nextStatus = 'Leído';
+        }
+
+        if (nextStatus) {
+            handleStatusChange(id, nextStatus);
+        }
     };
 
     const handleStatusChange = async (studyId: string, newStatus: string) => {
-        setIsUpdating(true);
+        setIsUpdating(studyId);
         const studyRef = doc(db, "studies", studyId);
         try {
             const updateData: any = { status: newStatus };
-            if (newStatus === 'Completado' || newStatus === 'Cancelado') {
+            if (newStatus === 'Completado' || newStatus === 'Cancelado' || newStatus === 'Leído') {
                 updateData.completionDate = serverTimestamp();
             }
              if (newStatus === 'Pendiente') {
@@ -117,7 +129,7 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                 description: "No se pudo cambiar el estado del estudio.",
             });
         } finally {
-            setIsUpdating(false);
+            setIsUpdating(null);
         }
     };
     
@@ -149,7 +161,7 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
         e.preventDefault();
         if (!editingStudy) return;
 
-        setIsUpdating(true);
+        setIsUpdating(editingStudy.id);
         const formData = new FormData(e.currentTarget);
         const studyData = {
             patient: {
@@ -163,13 +175,13 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                 cups: formData.get('cups') as string,
                 nombre: formData.get('studyName') as string,
                 details: formData.get('studyDetails') as string,
-                // modality is derived from name, so it will update automatically on next load
             }],
             diagnosis: {
                 code: formData.get('cie10') as string,
                 description: formData.get('diagnosisDescription') as string,
             },
-            service: formData.get('service') as string,
+            service: formData.get('service') as GeneralService,
+            subService: formData.get('subService') as string,
         };
 
         const studyRef = doc(db, "studies", editingStudy.id);
@@ -187,7 +199,7 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                 description: "No se pudieron guardar los cambios.",
             });
         } finally {
-            setIsUpdating(false);
+            setIsUpdating(null);
         }
     };
 
@@ -212,7 +224,29 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
             return '';
         }
     };
+    
+    const canPerformAction = (study: Study) => {
+        if (!userProfile) return { edit: false, cancel: false, changeStatus: false, quickChange: false, quickChangeLabel: '' };
 
+        const { rol } = userProfile;
+        const isAdmin = rol === 'administrador';
+        
+        const canQuickChange = 
+            (rol === 'tecnologo' && study.status === 'Pendiente') ||
+            (rol === 'transcriptora' && study.status === 'Completado');
+        
+        let quickChangeLabel = '';
+        if (rol === 'tecnologo' && study.status === 'Pendiente') quickChangeLabel = 'Completar';
+        if (rol === 'transcriptora' && study.status === 'Completado') quickChangeLabel = 'Marcar Leído';
+
+        return {
+            edit: isAdmin,
+            cancel: isAdmin || rol === 'tecnologo' || rol === 'transcriptora',
+            changeStatus: isAdmin,
+            quickChange: canQuickChange,
+            quickChangeLabel
+        };
+    };
 
     return (
         <>
@@ -309,24 +343,28 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                     const { icon: Icon, className, iconClassName, label } = statusConfig[req.status as keyof typeof statusConfig] || statusConfig.Pendiente;
                                     const study = req.studies[0];
                                     const age = getAge(req.patient.birthDate);
+                                    const permissions = canPerformAction(req);
                                     
                                     return (
                                         <TableRow key={req.id} className="text-sm">
                                             <TableCell className="p-1 align-middle h-full">
                                                 <button 
-                                                    onClick={() => handleQuickStatusChange(req.id, req.status)}
-                                                    disabled={req.status !== 'Pendiente' || isUpdating}
+                                                    onClick={() => handleQuickStatusChange(req)}
+                                                    disabled={!permissions.quickChange || !!isUpdating}
                                                     className={cn(
                                                         'w-full h-full flex flex-col items-center justify-center gap-1 p-1 rounded-md border transition-colors',
                                                         className,
-                                                        req.status === 'Pendiente' && 'hover:bg-opacity-80'
+                                                        permissions.quickChange && 'hover:bg-opacity-80'
                                                     )}
                                                 >
-                                                    <Icon className={cn('h-5 w-5', iconClassName)} />
-                                                    <p className='text-xs font-bold'>{label.toUpperCase()}</p>
+                                                     {isUpdating === req.id ? <Loader2 className="h-5 w-5 animate-spin"/> : <Icon className={cn('h-5 w-5', iconClassName)} />}
+                                                    <p className='text-xs font-bold'>{permissions.quickChange ? permissions.quickChangeLabel : label.toUpperCase()}</p>
                                                 </button>
                                             </TableCell>
-                                            <TableCell className="p-2 align-top text-center font-bold">{req.service}</TableCell>
+                                            <TableCell className="p-2 align-top text-center">
+                                                <div className="font-bold">{req.service}</div>
+                                                <div className="text-xs text-muted-foreground">{req.subService}</div>
+                                            </TableCell>
                                             <TableCell className="p-2 align-top max-w-[300px]">
                                                 <div className="font-bold uppercase text-sm">{req.patient.fullName}</div>
                                                 <div className="text-muted-foreground uppercase text-xs truncate">
@@ -364,28 +402,32 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                                             <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem onClick={() => setEditingStudy(req)}>Editar</DropdownMenuItem>
-                                                            <DropdownMenuSub>
-                                                                <DropdownMenuSubTrigger>Cambiar estado</DropdownMenuSubTrigger>
-                                                                <DropdownMenuPortal>
-                                                                <DropdownMenuSubContent>
-                                                                    {Object.keys(statusConfig).filter(s => s !== 'Cancelado').map(status => (
-                                                                        <DropdownMenuItem key={status} onClick={() => handleStatusChange(req.id, status)}>
-                                                                            {status}
-                                                                        </DropdownMenuItem>
-                                                                    ))}
-                                                                </DropdownMenuSubContent>
-                                                                </DropdownMenuPortal>
-                                                            </DropdownMenuSub>
-                                                            <AlertDialogTrigger asChild>
-                                                                <DropdownMenuItem
-                                                                    onSelect={(e) => e.preventDefault()}
-                                                                    disabled={req.status === 'Cancelado'}
-                                                                    className="text-orange-600 focus:text-orange-600"
-                                                                >
-                                                                    Cancelar
-                                                                </DropdownMenuItem>
-                                                            </AlertDialogTrigger>
+                                                            {permissions.edit && <DropdownMenuItem onClick={() => setEditingStudy(req)}>Editar</DropdownMenuItem>}
+                                                            {permissions.changeStatus && (
+                                                                <DropdownMenuSub>
+                                                                    <DropdownMenuSubTrigger>Cambiar estado</DropdownMenuSubTrigger>
+                                                                    <DropdownMenuPortal>
+                                                                    <DropdownMenuSubContent>
+                                                                        {Object.keys(statusConfig).filter(s => s !== 'Cancelado').map(status => (
+                                                                            <DropdownMenuItem key={status} onClick={() => handleStatusChange(req.id, status)}>
+                                                                                {status}
+                                                                            </DropdownMenuItem>
+                                                                        ))}
+                                                                    </DropdownMenuSubContent>
+                                                                    </DropdownMenuPortal>
+                                                                </DropdownMenuSub>
+                                                            )}
+                                                            {permissions.cancel && (
+                                                                <AlertDialogTrigger asChild>
+                                                                    <DropdownMenuItem
+                                                                        onSelect={(e) => e.preventDefault()}
+                                                                        disabled={req.status === 'Cancelado'}
+                                                                        className="text-orange-600 focus:text-orange-600"
+                                                                    >
+                                                                        Cancelar
+                                                                    </DropdownMenuItem>
+                                                                </AlertDialogTrigger>
+                                                            )}
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                     <AlertDialogContent>
@@ -459,10 +501,17 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                 </div>
 
                                 <h3 className="font-semibold text-sm pt-4">Datos del Servicio</h3>
-                                <div className="space-y-2">
-                                    <Label htmlFor="service">Servicio</Label>
-                                    <Input id="service" name="service" defaultValue={editingStudy.service} required />
+                                 <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="service">Servicio</Label>
+                                        <Input id="service" name="service" defaultValue={editingStudy.service} required />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="subService">Sub-Servicio</Label>
+                                        <Input id="subService" name="subService" defaultValue={editingStudy.subService} required />
+                                    </div>
                                 </div>
+
 
                                 <h3 className="font-semibold text-sm pt-4">Datos del Estudio</h3>
                                 <div className="grid grid-cols-2 gap-4">
@@ -493,8 +542,8 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                 </div>
                             </div>
                             <AlertDialogFooter>
-                                <Button type="button" variant="outline" onClick={() => setEditingStudy(null)} disabled={isUpdating}>Cancelar</Button>
-                                <Button type="submit" disabled={isUpdating}>
+                                <Button type="button" variant="outline" onClick={() => setEditingStudy(null)} disabled={!!isUpdating}>Cancelar</Button>
+                                <Button type="submit" disabled={!!isUpdating}>
                                     {isUpdating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                                     Guardar Cambios
                                 </Button>
