@@ -65,7 +65,7 @@ type StudyTableProps = {
 
 const statusConfig = {
     'Pendiente': { icon: AlertTriangle, className: 'border-[hsl(360,100%,43%)] text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Pendiente', style: { backgroundColor: 'hsl(360 100% 43%)' } },
-    'Completado': { icon: CheckCircle, className: 'border-[hsl(99,100%,13.1%)] text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Completado', style: { backgroundColor: 'hsl(99 100% 13.1%)' } },
+    'Completado': { icon: CheckCircle, className: 'border-[hsl(107,100%,23%)] text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Completado', style: { backgroundColor: 'hsl(107 100% 23%)' } },
     'Leído': { icon: BookOpenCheck, className: 'border-[hsl(241,100%,21.9%)] text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Leído', style: { backgroundColor: 'hsl(241 100% 21.9%)' } },
     'Cancelado': { icon: XCircle, className: 'bg-orange-500 dark:bg-orange-600 border-orange-500 dark:border-orange-600 text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Cancelado' },
 };
@@ -603,3 +603,5 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
         </>
     );
 }
+
+    
