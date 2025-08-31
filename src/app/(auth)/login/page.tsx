@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { AppLogoIcon } from '@/components/icons/app-logo-icon';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -47,7 +47,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="text-center">
             <div className="flex justify-center items-center gap-3 mb-4">
-                <Image src="https://firebasestorage.googleapis.com/v0/b/med-itrack-nduik.appspot.com/o/app-logo.png?alt=media" alt="Med-iTrack Logo" width={56} height={56} className="h-14 w-14" unoptimized={true} />
+                <AppLogoIcon className="h-14 w-14" />
                 <div className='grid text-left'>
                     <h1 className="text-3xl font-bold font-headline text-gray-800 dark:text-gray-200">Med-iTrack</h1>
                     <p className="text-sm text-muted-foreground font-medium tracking-wide">Precision you can trace.</p>

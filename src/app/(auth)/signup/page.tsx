@@ -14,7 +14,7 @@ import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import type { UserRole, Service, GeneralService, SubServiceArea } from '@/lib/types';
 import { GeneralServices, SubServiceAreas } from '@/lib/types';
-import Image from 'next/image';
+import { AppLogoIcon } from '@/components/icons/app-logo-icon';
 
 const roles: UserRole[] = ["administrador", "enfermero", "tecnologo", "transcriptora"];
 const modalities: Service[] = ["TAC", "RX", "ECO", "MAMO", "DENSITOMETRIA", "RMN"];
@@ -104,7 +104,7 @@ export default function SignupPage() {
       <Card className="w-full max-w-lg shadow-2xl">
         <CardHeader className="text-center">
             <div className="flex justify-center items-center gap-3 mb-4">
-                 <Image src="https://firebasestorage.googleapis.com/v0/b/med-itrack-nduik.appspot.com/o/app-logo.png?alt=media" alt="Med-iTrack Logo" width={56} height={56} className="h-14 w-14" unoptimized={true} />
+                 <AppLogoIcon className="h-14 w-14" />
             </div>
           <CardTitle className="text-2xl">Crear Nuevo Usuario</CardTitle>
           <CardDescription>Registra un nuevo miembro del equipo</CardDescription>
