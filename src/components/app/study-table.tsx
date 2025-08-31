@@ -240,21 +240,21 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
     
     const canPerformAction = (study: Study) => {
         if (!userProfile) return { edit: false, cancel: false, changeStatus: false, quickChange: false };
-
         const { rol } = userProfile;
-        const { status } = study;
-        const modality = study.studies[0]?.modality;
-
+        
         // Admin has all permissions, always.
         if (rol === 'administrador') {
             return {
                 edit: true,
                 cancel: true,
                 changeStatus: true,
-                quickChange: status === 'Pendiente' || status === 'Completado',
+                quickChange: study.status === 'Pendiente' || study.status === 'Completado',
             };
         }
         
+        const { status } = study;
+        const modality = study.studies[0]?.modality;
+
         let canQuickChange = false;
 
         if (rol === 'tecnologo') {
@@ -410,10 +410,16 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                                 <div className="flex items-start gap-3">
                                                     <Badge variant="outline" className="flex items-center justify-center w-12 h-10 border-2 font-semibold rounded-md text-sm">{study.modality}</Badge>
                                                     <div>
-                                                        <div className="font-bold uppercase text-sm leading-tight">{study.nombre}</div>
-                                                        <div className="text-muted-foreground text-xs font-medium">
-                                                            <span>CUPS: {study.cups}</span>
-                                                            <span className="text-blue-600 dark:text-blue-400 font-semibold ml-2">DX: {req.diagnosis.code} - {req.diagnosis.description}</span>
+                                                        <div className="font-semibold uppercase text-sm leading-tight">
+                                                            {study.nombre} <span className="font-bold">CUPS: {study.cups}</span>
+                                                        </div>
+                                                        {study.details && (
+                                                            <div className="text-amber-600 dark:text-amber-400 text-xs font-medium">
+                                                                OBS: {study.details}
+                                                            </div>
+                                                        )}
+                                                        <div className="text-blue-600 dark:text-blue-400 text-xs font-semibold">
+                                                            DX: {req.diagnosis.code} - {req.diagnosis.description}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -582,7 +588,5 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
         </>
     );
 }
-
-    
 
     
