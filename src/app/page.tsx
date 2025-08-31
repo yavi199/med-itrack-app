@@ -70,6 +70,7 @@ export default function HomePage() {
   useEffect(() => {
     if (!userProfile) return;
 
+    // Pre-select the service filter for nurses, allowing them to change it later.
     if (userProfile.rol === 'enfermero' && userProfile.servicioAsignado) {
       setActiveFilters(prev => ({ ...prev, services: [userProfile.servicioAsignado as GeneralService] }));
     }
@@ -134,11 +135,12 @@ export default function HomePage() {
     if (!userProfile) return [];
     let filteredData = studies;
     
-    // Client-side filtering for roles
+    // Client-side filtering based on user role (but only if no other filters are active)
     if (userProfile.rol === 'enfermero') {
+        // By user request, nurses only filter by their general service area, not sub-area.
+        // This allows them to see all requests within their broader department.
         filteredData = filteredData.filter(item => 
-            item.service === userProfile.servicioAsignado &&
-            item.subService === userProfile.subServicioAsignado
+            item.service === userProfile.servicioAsignado
         );
     } else if (userProfile.rol === 'tecnologo' || userProfile.rol === 'transcriptora') {
         filteredData = filteredData.filter(item => 
@@ -157,28 +159,28 @@ export default function HomePage() {
         });
     }
     
-    // Filter by active modalities
+    // Filter by active modalities from the summary cards
     if (activeFilters.modalities.length > 0) {
         filteredData = filteredData.filter(item => 
             activeFilters.modalities.includes(item.studies[0].modality)
         );
     }
 
-    // Filter by active services
+    // Filter by active services from the summary cards
     if (activeFilters.services.length > 0) {
         filteredData = filteredData.filter(item =>
             activeFilters.services.includes(item.service)
         );
     }
 
-    // Filter by active statuses
+    // Filter by active statuses from the table header dropdown
     if (activeFilters.statuses.length > 0) {
         filteredData = filteredData.filter(item =>
             activeFilters.statuses.includes(item.status)
         );
     }
 
-    // Filter by date range
+    // Filter by date range from the calendar picker
     if (dateRange?.from) {
         filteredData = filteredData.filter(item => {
             if (!item.requestDate) return false;
