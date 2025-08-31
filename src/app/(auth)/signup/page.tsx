@@ -51,10 +51,7 @@ export default function SignupPage() {
 
   const handleRoleChange = (value: UserRole) => {
     setRol(value);
-    if (value === 'administrador') {
-      setServicioAsignado('General');
-      setSubServicioAsignado(undefined);
-    } else if (value === 'enfermero') {
+    if (value === 'administrador' || value === 'enfermero') {
       setServicioAsignado('URG');
       setSubServicioAsignado('TRIAGE');
     } else { // tecnologo or transcriptora
@@ -176,7 +173,7 @@ export default function SignupPage() {
                 </Select>
             </div>
 
-            {rol === 'enfermero' && (
+            {(rol === 'enfermero' || rol === 'administrador') && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <Label htmlFor="servicio-general">Servicio General</Label>
