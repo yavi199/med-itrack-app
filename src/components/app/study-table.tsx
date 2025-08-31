@@ -424,14 +424,15 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                                         <div className="uppercase text-sm leading-tight font-bold">
                                                             {study.nombre} <span className="text-gray-500 font-bold">CUPS: {study.cups}</span>
                                                         </div>
-                                                        <div className="text-sm">
-                                                            DX: {req.diagnosis.code} - {req.diagnosis.description}
+                                                        <div className="text-sm text-muted-foreground">
+                                                            <span>CIE10: {req.diagnosis.code}</span>
+                                                            {study.details && (
+                                                                <>
+                                                                    <span className="mx-2">|</span>
+                                                                    <span className="text-blue-600 dark:text-blue-400 font-bold uppercase">{study.details}</span>
+                                                                </>
+                                                            )}
                                                         </div>
-                                                        {study.details && (
-                                                            <div className="text-blue-600 dark:text-blue-400 text-sm font-bold">
-                                                                OBS: {study.details}
-                                                            </div>
-                                                        )}
                                                     </div>
                                                 </div>
                                             </TableCell>
@@ -605,3 +606,6 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
 
     
 
+
+
+    
