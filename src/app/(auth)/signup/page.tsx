@@ -42,7 +42,7 @@ export default function SignupPage() {
   const [nombre, setNombre] = useState('');
   const [rol, setRol] = useState<UserRole>('enfermero');
   const [servicioAsignado, setServicioAsignado] = useState<Service | GeneralService>('URG');
-  const [subServicioAsignado, setSubServicioAsignado] = useState<SubServiceArea>('TRIAGE');
+  const [subServicioAsignado, setSubServicioAsignado] = useState<SubServiceArea | undefined>('TRIAGE');
   
   const { signup } = useAuth();
   const router = useRouter();
@@ -93,7 +93,7 @@ export default function SignupPage() {
         nombre,
         rol,
         servicioAsignado,
-        subServicioAsignado: rol === 'enfermero' ? subServicioAsignado : undefined,
+        subServicioAsignado, // This will be undefined for roles other than 'enfermero', which is correct.
         activo: true
       });
       toast({
