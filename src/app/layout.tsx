@@ -6,6 +6,9 @@ import { AuthProvider } from '@/context/auth-context';
 export const metadata: Metadata = {
   title: 'Med-iTrack',
   description: 'Precision you can trace.',
+  icons: {
+    icon: 'https://firebasestorage.googleapis.com/v0/b/med-itrack-nduik.appspot.com/o/app-logo.png?alt=media',
+  },
 };
 
 export default function RootLayout({
