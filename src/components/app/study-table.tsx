@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import React, { useState } from "react";
@@ -67,7 +66,7 @@ type StudyTableProps = {
 const statusConfig = {
     'Pendiente': { icon: Clock, className: 'bg-red-600 dark:bg-red-700 border-red-600 dark:border-red-700 text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Pendiente' },
     'Completado': { icon: CheckCircle, className: 'border-[hsl(120,100%,24.6%)] text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Completado', style: { backgroundColor: 'hsl(120 100% 24.6%)' } },
-    'Leído': { icon: BookOpenCheck, className: 'border-[hsl(258,100%,16.7%)] text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Leído', style: { backgroundColor: 'hsl(258 100% 16.7%)' } },
+    'Leído': { icon: BookOpenCheck, className: 'border-[hsl(241,100%,21.9%)] text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Leído', style: { backgroundColor: 'hsl(241 100% 21.9%)' } },
     'Cancelado': { icon: XCircle, className: 'bg-orange-500 dark:bg-orange-600 border-orange-500 dark:border-orange-600 text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Cancelado' },
 };
 
@@ -227,7 +226,7 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
     const formatDate = (dateObj: { toDate: () => Date } | null) => {
         if (!dateObj) return null;
         try {
-            return format(dateObj.toDate(), "dd MMM, HH:mm");
+            return format(dateObj.toDate(), "dd MMM, HH:mm", { locale: es });
         } catch (error) {
             return 'Fecha inválida';
         }
@@ -420,18 +419,18 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                                     )}
                                                 </div>
                                             </TableCell>
-                                            <TableCell className="p-2 align-top">
+                                             <TableCell className="p-2 align-top">
                                                 <div className="flex items-start gap-3">
-                                                    <Badge variant="outline" className="flex items-center justify-center w-12 h-10 border-2 font-semibold rounded-md text-sm">{study.modality}</Badge>
+                                                     <Badge variant="outline" className="flex items-center justify-center w-12 h-10 border-2 font-semibold rounded-md text-sm">{study.modality}</Badge>
                                                     <div>
                                                         <div className="uppercase font-bold text-sm">
                                                             {study.nombre}
                                                             <span className="font-bold text-gray-500 ml-2">CUPS: {study.cups}</span>
                                                         </div>
                                                         <div className="text-sm">
-                                                            <span className="text-black dark:text-white">CIE10: {req.diagnosis.code}</span>
+                                                            <span>CIE10: {req.diagnosis.code}</span>
                                                             {study.details && (
-                                                                <span style={{color: 'hsl(258 100% 16.7%)'}} className="font-bold ml-2">
+                                                                <span style={{color: 'hsl(241 100% 21.9%)'}} className="font-bold ml-2">
                                                                     | {study.details}
                                                                 </span>
                                                             )}
@@ -442,7 +441,7 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                             <TableCell className="p-2 align-top text-center text-xs space-y-1">
                                                 {requestDateFmt && <div className="font-medium text-red-600">{requestDateFmt}</div>}
                                                 {completionDateFmt && <div className="font-medium" style={{color: 'hsl(120 100% 24.6%)'}}>{completionDateFmt}</div>}
-                                                {readingDateFmt && <div className="font-medium" style={{color: 'hsl(258 100% 16.7%)'}}>{readingDateFmt}</div>}
+                                                {readingDateFmt && <div className="font-medium" style={{color: 'hsl(241 100% 21.9%)'}}>{readingDateFmt}</div>}
                                             </TableCell>
                                             <TableCell className="p-1 text-right align-top">
                                                 <AlertDialog>
@@ -606,12 +605,3 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
 }
 
     
-
-    
-
-
-
-    
-
-    
-
