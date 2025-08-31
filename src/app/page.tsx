@@ -135,19 +135,6 @@ export default function HomePage() {
     if (!userProfile) return [];
     let filteredData = studies;
     
-    // Client-side filtering based on user role (but only if no other filters are active)
-    if (userProfile.rol === 'enfermero') {
-        // By user request, nurses only filter by their general service area, not sub-area.
-        // This allows them to see all requests within their broader department.
-        filteredData = filteredData.filter(item => 
-            item.service === userProfile.servicioAsignado
-        );
-    } else if (userProfile.rol === 'tecnologo' || userProfile.rol === 'transcriptora') {
-        filteredData = filteredData.filter(item => 
-            item.studies[0].modality === userProfile.servicioAsignado
-        );
-    } // No role-based filtering for admin, they see everything based on active filters
-
     const lowercasedFilter = searchTerm.toLowerCase();
     // Filter by search term
     if (searchTerm) {
@@ -171,7 +158,20 @@ export default function HomePage() {
         filteredData = filteredData.filter(item =>
             activeFilters.services.includes(item.service)
         );
+    } else { // ONLY apply role-based filtering if no service filter is active
+         if (userProfile.rol === 'enfermero') {
+            // By user request, nurses only filter by their general service area, not sub-area.
+            // This allows them to see all requests within their broader department.
+            filteredData = filteredData.filter(item => 
+                item.service === userProfile.servicioAsignado
+            );
+        } else if (userProfile.rol === 'tecnologo' || userProfile.rol === 'transcriptora') {
+            filteredData = filteredData.filter(item => 
+                item.studies[0].modality === userProfile.servicioAsignado
+            );
+        } // No role-based filtering for admin, they see everything based on active filters
     }
+
 
     // Filter by active statuses from the table header dropdown
     if (activeFilters.statuses.length > 0) {
@@ -322,3 +322,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    

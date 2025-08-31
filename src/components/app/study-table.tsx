@@ -121,11 +121,13 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
         const studyRef = doc(db, "studies", studyId);
         try {
             const updateData: any = { status: newStatus };
-            if (newStatus === 'Completado' || newStatus === 'Cancelado' || newStatus === 'Leído') {
+            if (newStatus === 'Completado' || newStatus === 'Leído') {
                 updateData.completionDate = serverTimestamp();
+            } else if (newStatus === 'Cancelado') {
+                 updateData.completionDate = serverTimestamp();
             }
              if (newStatus === 'Pendiente') {
-                updateData.completionDate = null;
+                updateData.completionDate = deleteField();
                 updateData.cancellationReason = deleteField();
             }
 
@@ -242,8 +244,9 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
         if (!userProfile) return { edit: false, cancel: false, changeStatus: false, quickChange: false };
         const { rol } = userProfile;
         
-        // Admin has all permissions, always.
-        if (rol === 'administrador') {
+        const isAdmin = rol === 'administrador';
+        
+        if (isAdmin) {
             return {
                 edit: true,
                 cancel: true,
@@ -268,9 +271,9 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
         }
 
         return {
-            edit: false, // Only admin can edit
+            edit: false, 
             cancel: rol === 'tecnologo' || rol === 'transcriptora',
-            changeStatus: false, // Only admin can change status from menu
+            changeStatus: false, 
             quickChange: canQuickChange,
         };
     };
@@ -410,14 +413,14 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                                 <div className="flex items-start gap-3">
                                                     <Badge variant="outline" className="flex items-center justify-center w-12 h-10 border-2 font-semibold rounded-md text-sm">{study.modality}</Badge>
                                                     <div>
-                                                        <div className="font-semibold uppercase text-sm leading-tight">
-                                                            {study.nombre} <span className="font-normal text-muted-foreground">CUPS: {study.cups}</span>
+                                                        <div className="uppercase text-sm leading-tight">
+                                                            {study.nombre} <span className="font-bold text-gray-500">CUPS: {study.cups}</span>
                                                         </div>
                                                         <div className="text-xs">
                                                             DX: {req.diagnosis.code} - {req.diagnosis.description}
                                                         </div>
                                                         {study.details && (
-                                                            <div className="text-blue-600 dark:text-blue-400 text-xs font-medium">
+                                                            <div className="text-blue-600 dark:text-blue-400 text-xs font-bold">
                                                                 OBS: {study.details}
                                                             </div>
                                                         )}
@@ -426,7 +429,11 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                             </TableCell>
                                             <TableCell className="p-2 align-top text-center text-xs space-y-1">
                                                 <div className="font-medium text-red-600">{formatDate(req.requestDate)}</div>
-                                                <div className="font-medium text-green-600">{formatDate(req.completionDate)}</div>
+                                                {req.status === 'Completado' ? (
+                                                    <div className="font-medium text-green-600">{formatDate(req.completionDate)}</div>
+                                                ) : req.status === 'Leído' ? (
+                                                    <div className="font-medium text-blue-600">{formatDate(req.completionDate)}</div>
+                                                ) : null}
                                             </TableCell>
                                             <TableCell className="p-1 text-right align-top">
                                                 <AlertDialog>
@@ -588,5 +595,7 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
         </>
     );
 }
+
+    
 
     
