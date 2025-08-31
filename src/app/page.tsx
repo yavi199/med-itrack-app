@@ -70,7 +70,6 @@ export default function HomePage() {
   useEffect(() => {
     if (!userProfile) return;
 
-    // Pre-select the service filter for nurses, allowing them to change it later.
     if (userProfile.rol === 'enfermero' && userProfile.servicioAsignado) {
       setActiveFilters(prev => ({ ...prev, services: [userProfile.servicioAsignado as GeneralService] }));
     }
@@ -79,7 +78,6 @@ export default function HomePage() {
   useEffect(() => {
     if (!user) return;
     
-    // Always fetch all studies ordered by date
     const q = query(collection(db, "studies"), orderBy("requestDate", "desc"));
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -137,7 +135,6 @@ export default function HomePage() {
     let filteredData = studies;
     
     const lowercasedFilter = searchTerm.toLowerCase();
-    // Filter by search term
     if (searchTerm) {
         filteredData = filteredData.filter(item => {
             return (
@@ -147,22 +144,18 @@ export default function HomePage() {
         });
     }
     
-    // Filter by active modalities from the summary cards
     if (activeFilters.modalities.length > 0) {
         filteredData = filteredData.filter(item => 
             activeFilters.modalities.includes(item.studies[0].modality)
         );
     }
 
-    // Filter by active services from the summary cards
     if (activeFilters.services.length > 0) {
         filteredData = filteredData.filter(item =>
             activeFilters.services.includes(item.service)
         );
-    } else { // ONLY apply role-based filtering if no service filter is active
+    } else {
          if (userProfile.rol === 'enfermero') {
-            // By user request, nurses only filter by their general service area, not sub-area.
-            // This allows them to see all requests within their broader department.
             filteredData = filteredData.filter(item => 
                 item.service === userProfile.servicioAsignado
             );
@@ -170,18 +163,16 @@ export default function HomePage() {
             filteredData = filteredData.filter(item => 
                 item.studies[0].modality === userProfile.servicioAsignado
             );
-        } // No role-based filtering for admin, they see everything based on active filters
+        }
     }
 
 
-    // Filter by active statuses from the table header dropdown
     if (activeFilters.statuses.length > 0) {
         filteredData = filteredData.filter(item =>
             activeFilters.statuses.includes(item.status)
         );
     }
 
-    // Filter by date range from the calendar picker
     if (dateRange?.from) {
         filteredData = filteredData.filter(item => {
             if (!item.requestDate) return false;
@@ -198,7 +189,6 @@ export default function HomePage() {
   }, [searchTerm, studies, activeFilters, dateRange, userProfile]);
 
   useEffect(() => {
-    // This effect now only calculates summaries and is safe from loops
     const pendingStudies = studies.filter(s => s.status === 'Pendiente');
     const newSummary: Summary = { ECO: 0, RX: 0, TAC: 0, RMN: 0 };
     const newServiceSummary: ServiceSummary = { URG: 0, HOSP: 0, UCI: 0, 'C.EXT': 0 };
@@ -216,7 +206,7 @@ export default function HomePage() {
     
     setSummary(newSummary);
     setServiceSummary(newServiceSummary);
-  }, [studies]); // Only depends on studies now
+  }, [studies]);
 
   if (authLoading || !user || !userProfile || loading) {
     return (
@@ -323,5 +313,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    

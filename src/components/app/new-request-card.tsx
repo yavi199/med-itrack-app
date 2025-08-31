@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, UploadCloud, Loader2, FileDown, User, FileText, ChevronRight, X } from "lucide-react";
+import { Search, UploadCloud, Loader2, FileDown, User, FileText, X } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { extractOrder, ExtractOrderOutput } from '@/ai/flows/extract-order-flow';
 import { generateAuthorizationPdf } from '@/ai/flows/generate-authorization-pdf-flow';
@@ -48,7 +48,6 @@ export function NewRequestCard() {
     const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
     const [showMultiUploadDialog, setShowMultiUploadDialog] = useState(false);
 
-    // State for manual entry form
     const [manualService, setManualService] = useState<GeneralService>('URG');
     const [manualSubService, setManualSubService] = useState(SubServiceAreas['URG'][0]);
 
@@ -157,18 +156,16 @@ export function NewRequestCard() {
         }
 
         try {
-            // Determine service and subservice
             let service: GeneralService;
             let subService: string | undefined;
 
-            if (manualData) { // From manual entry
+            if (manualData) { 
                 service = manualData.service;
                 subService = manualData.subService;
-            } else if ((userProfile.rol === 'enfermero' || userProfile.rol === 'administrador') && 'servicioAsignado' in userProfile && 'subServicioAsignado' in userProfile) { // From file upload for nurse or admin
+            } else if ((userProfile.rol === 'enfermero' || userProfile.rol === 'administrador') && 'servicioAsignado' in userProfile && 'subServicioAsignado' in userProfile) { 
                 service = userProfile.servicioAsignado as GeneralService;
                 subService = userProfile.subServicioAsignado;
             } else {
-                 // Fallback for other roles or misconfigured profiles.
                  toast({ variant: "destructive", title: "Perfil no configurado", description: "El perfil de usuario no tiene un servicio asignado." });
                  setIsCreating(false);
                  return;
@@ -225,7 +222,6 @@ export function NewRequestCard() {
         let errorCount = 0;
 
         for (const file of successfulFiles) {
-            // All multi-uploads come from one user, so use their profile for service/subservice
             const result = await handleCreateRequest(file.extractedData, true);
             if (result.success) {
                 successCount++;
@@ -328,7 +324,7 @@ export function NewRequestCard() {
                         onChange={(e) => handleFileChange(e.target.files)}
                         accept="image/*,application/pdf"
                         disabled={isProcessing || isCreating}
-                        multiple // Allow multiple files
+                        multiple
                     />
                     <label
                         htmlFor="file-upload"
@@ -374,7 +370,6 @@ export function NewRequestCard() {
                 </CardContent>
             </Card>
 
-            {/* Admin Choice Dialog */}
             <AlertDialog open={showAdminChoice} onOpenChange={(open) => {if (!open) resetState()}}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -401,7 +396,6 @@ export function NewRequestCard() {
                 </AlertDialogContent>
             </AlertDialog>
             
-            {/* Authorization Options Dialog */}
             <AlertDialog open={showAuthorizationOptions} onOpenChange={(open) => {if (!open) resetState()}}>
                  <AlertDialogContent>
                     <AlertDialogHeader>
@@ -424,7 +418,6 @@ export function NewRequestCard() {
                 </AlertDialogContent>
             </AlertDialog>
 
-            {/* Multi-upload Dialog */}
              <AlertDialog open={showMultiUploadDialog} onOpenChange={(open) => { if (!open) resetState() }}>
                 <AlertDialogContent className="max-w-2xl max-h-[90vh]">
                     <AlertDialogHeader>
@@ -612,7 +605,3 @@ export function NewRequestCard() {
         </>
     );
 }
-
-    
-
-    

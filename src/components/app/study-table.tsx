@@ -390,7 +390,7 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                                 <button 
                                                     onClick={() => handleQuickStatusChange(req)}
                                                     disabled={!permissions.quickChange || !!isUpdating}
-                                                    style={style || {}}
+                                                    style={style}
                                                     className={cn(
                                                         'w-full h-full flex flex-col items-center justify-center gap-1 p-1 rounded-md border transition-colors',
                                                         className,
@@ -425,7 +425,7 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                                     <div>
                                                         <div className="uppercase font-bold text-sm">
                                                             {study.nombre}
-                                                            <span className="font-bold text-gray-500 ml-2">CUPS: {study.cups}</span>
+                                                            <span className="font-semibold text-gray-500 ml-2">CUPS: {study.cups}</span>
                                                         </div>
                                                         <div className="text-sm">
                                                             <span>CIE10: {req.diagnosis.code}</span>
@@ -603,7 +603,3 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
         </>
     );
 }
-
-    
-
-    
