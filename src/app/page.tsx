@@ -257,7 +257,7 @@ export default function HomePage() {
     <div className="min-h-screen w-full bg-background text-foreground">
       <AppHeader />
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-stretch">
           
           {(userProfile.rol === 'administrador' || userProfile.rol === 'enfermero') && (
             <NewRequestCard />

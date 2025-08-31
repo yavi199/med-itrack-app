@@ -312,7 +312,7 @@ export function NewRequestCard() {
     
     return (
         <>
-            <Card className="shadow-lg border-border xl:col-span-1 flex flex-col">
+            <Card className="shadow-lg border-border xl:col-span-1 flex flex-col h-full">
                 <CardHeader className="p-4">
                     <CardTitle className="font-headline font-semibold text-lg text-foreground">Nueva Solicitud</CardTitle>
                 </CardHeader>
@@ -333,7 +333,7 @@ export function NewRequestCard() {
                         onDragOver={handleDragOver}
                         onDrop={handleDrop}
                         className={cn(
-                            "border-2 border-dashed rounded-lg p-6 text-center flex flex-col items-center justify-center h-full w-full bg-primary/10 border-primary/40 transition-colors",
+                            "border-2 border-dashed rounded-lg p-6 text-center flex flex-col items-center justify-center flex-grow w-full bg-primary/10 border-primary/40 transition-colors",
                             !(isProcessing || isCreating) && "cursor-pointer hover:border-primary",
                             dragging && "border-primary bg-primary/20"
                         )}
