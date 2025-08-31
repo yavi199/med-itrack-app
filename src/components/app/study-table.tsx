@@ -411,16 +411,16 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                                     <Badge variant="outline" className="flex items-center justify-center w-12 h-10 border-2 font-semibold rounded-md text-sm">{study.modality}</Badge>
                                                     <div>
                                                         <div className="font-semibold uppercase text-sm leading-tight">
-                                                            {study.nombre} <span className="font-bold">CUPS: {study.cups}</span>
+                                                            {study.nombre} <span className="font-normal text-muted-foreground">CUPS: {study.cups}</span>
+                                                        </div>
+                                                        <div className="text-xs">
+                                                            DX: {req.diagnosis.code} - {req.diagnosis.description}
                                                         </div>
                                                         {study.details && (
-                                                            <div className="text-amber-600 dark:text-amber-400 text-xs font-medium">
+                                                            <div className="text-blue-600 dark:text-blue-400 text-xs font-medium">
                                                                 OBS: {study.details}
                                                             </div>
                                                         )}
-                                                        <div className="text-blue-600 dark:text-blue-400 text-xs font-semibold">
-                                                            DX: {req.diagnosis.code} - {req.diagnosis.description}
-                                                        </div>
                                                     </div>
                                                 </div>
                                             </TableCell>
