@@ -81,14 +81,20 @@ export default function SignupPage() {
     }
 
     setLoading(true);
-    try {
-      await signup(email, password, {
+
+    const profileData: any = {
         nombre,
         rol,
         servicioAsignado,
-        subServicioAsignado,
         activo: true
-      });
+    };
+
+    if (subServicioAsignado) {
+        profileData.subServicioAsignado = subServicioAsignado;
+    }
+
+    try {
+      await signup(email, password, profileData);
       toast({
         title: 'Usuario Creado',
         description: 'El nuevo usuario ha sido registrado exitosamente.',
