@@ -66,8 +66,8 @@ type StudyTableProps = {
 
 const statusConfig = {
     'Pendiente': { icon: Clock, className: 'bg-red-600 dark:bg-red-700 border-red-600 dark:border-red-700 text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Pendiente' },
-    'Completado': { icon: CheckCircle, className: 'bg-[hsl(120,100%,24.6%)] border-[hsl(120,100%,24.6%)] text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Completado' },
-    'Leído': { icon: BookOpenCheck, className: 'bg-blue-600 dark:bg-blue-700 border-blue-600 dark:border-blue-700 text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Leído' },
+    'Completado': { icon: CheckCircle, className: 'border-[hsl(120,100%,24.6%)] text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Completado', style: { backgroundColor: 'hsl(120 100% 24.6%)' } },
+    'Leído': { icon: BookOpenCheck, className: 'border-[hsl(258,100%,16.7%)] text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Leído', style: { backgroundColor: 'hsl(258 100% 16.7%)' } },
     'Cancelado': { icon: XCircle, className: 'bg-orange-500 dark:bg-orange-600 border-orange-500 dark:border-orange-600 text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Cancelado' },
 };
 
@@ -375,7 +375,8 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                 </TableRow>
                             ) : (
                                 studies.map((req) => {
-                                    const { icon: Icon, className, iconClassName, label } = statusConfig[req.status as keyof typeof statusConfig] || statusConfig.Pendiente;
+                                    const statusInfo = statusConfig[req.status as keyof typeof statusConfig] || statusConfig.Pendiente;
+                                    const { icon: Icon, className, iconClassName, label, style } = statusInfo;
                                     const study = req.studies[0];
                                     const age = getAge(req.patient.birthDate);
                                     const permissions = canPerformAction(req);
@@ -390,6 +391,7 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                                 <button 
                                                     onClick={() => handleQuickStatusChange(req)}
                                                     disabled={!permissions.quickChange || !!isUpdating}
+                                                    style={style || {}}
                                                     className={cn(
                                                         'w-full h-full flex flex-col items-center justify-center gap-1 p-1 rounded-md border transition-colors',
                                                         className,
@@ -422,20 +424,16 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                                 <div className="flex items-start gap-3">
                                                     <Badge variant="outline" className="flex items-center justify-center w-12 h-10 border-2 font-semibold rounded-md text-sm">{study.modality}</Badge>
                                                     <div>
-                                                        <div className="uppercase text-sm leading-tight font-bold">
+                                                        <div className="uppercase font-bold text-sm">
                                                             {study.nombre}
+                                                            <span className="font-bold text-gray-500 ml-2">CUPS: {study.cups}</span>
                                                         </div>
                                                         <div className="text-sm">
-                                                            <span className="text-gray-500 font-bold">CUPS: {study.cups}</span>
-                                                        </div>
-                                                        <div className="text-sm text-black dark:text-white">
-                                                            CIE10: {req.diagnosis.code}
-                                                        </div>
-                                                        <div className="text-sm text-blue-600 dark:text-blue-400 font-bold uppercase">
+                                                            <span className="text-black dark:text-white">CIE10: {req.diagnosis.code}</span>
                                                             {study.details && (
-                                                                <>
-                                                                    OBS: {study.details}
-                                                                </>
+                                                                <span style={{color: 'hsl(258 100% 16.7%)'}} className="font-bold ml-2">
+                                                                    | {study.details}
+                                                                </span>
                                                             )}
                                                         </div>
                                                     </div>
@@ -443,8 +441,8 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                             </TableCell>
                                             <TableCell className="p-2 align-top text-center text-xs space-y-1">
                                                 {requestDateFmt && <div className="font-medium text-red-600">{requestDateFmt}</div>}
-                                                {completionDateFmt && <div className="font-medium text-[hsl(120,100%,24.6%)]">{completionDateFmt}</div>}
-                                                {readingDateFmt && <div className="font-medium text-blue-600">{readingDateFmt}</div>}
+                                                {completionDateFmt && <div className="font-medium" style={{color: 'hsl(120 100% 24.6%)'}}>{completionDateFmt}</div>}
+                                                {readingDateFmt && <div className="font-medium" style={{color: 'hsl(258 100% 16.7%)'}}>{readingDateFmt}</div>}
                                             </TableCell>
                                             <TableCell className="p-1 text-right align-top">
                                                 <AlertDialog>
@@ -616,3 +614,4 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
     
 
     
+
