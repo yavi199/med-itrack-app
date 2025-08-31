@@ -239,7 +239,7 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
     };
     
     const canPerformAction = (study: Study) => {
-        if (!userProfile) return { edit: false, cancel: false, changeStatus: false, quickChange: false, quickChangeLabel: '' };
+        if (!userProfile) return { edit: false, cancel: false, changeStatus: false, quickChange: false };
 
         const { rol } = userProfile;
         const { status } = study;
@@ -247,41 +247,23 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
 
         // Admin has all permissions, always.
         if (rol === 'administrador') {
-            let canQuickChange = false;
-            let quickChangeLabel = '';
-            if (status === 'Pendiente') {
-                canQuickChange = true;
-                quickChangeLabel = 'Completar';
-            } else if (status === 'Completado') {
-                canQuickChange = true;
-                quickChangeLabel = 'Marcar Leído';
-            }
-
             return {
                 edit: true,
                 cancel: true,
                 changeStatus: true,
-                quickChange: canQuickChange,
-                quickChangeLabel,
+                quickChange: status === 'Pendiente' || status === 'Completado',
             };
         }
         
-        // Permissions for other roles
         let canQuickChange = false;
-        let quickChangeLabel = '';
 
         if (rol === 'tecnologo') {
             if (status === 'Pendiente') {
                 canQuickChange = true;
-                quickChangeLabel = 'Completar';
             }
         } else if (rol === 'transcriptora') {
-             if (status === 'Pendiente' && modality === 'ECO') {
+             if ((status === 'Pendiente' && modality === 'ECO') || status === 'Completado') {
                 canQuickChange = true;
-                quickChangeLabel = 'Completar (ECO)';
-            } else if (status === 'Completado') {
-                canQuickChange = true;
-                quickChangeLabel = 'Marcar Leído';
             }
         }
 
@@ -290,7 +272,6 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
             cancel: rol === 'tecnologo' || rol === 'transcriptora',
             changeStatus: false, // Only admin can change status from menu
             quickChange: canQuickChange,
-            quickChangeLabel
         };
     };
 
@@ -404,7 +385,7 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                                     )}
                                                 >
                                                      {isUpdating === req.id ? <Loader2 className="h-5 w-5 animate-spin"/> : <Icon className={cn('h-5 w-5', iconClassName)} />}
-                                                    <p className='text-xs font-bold'>{permissions.quickChange ? permissions.quickChangeLabel : label.toUpperCase()}</p>
+                                                    <p className='text-xs font-bold'>{label.toUpperCase()}</p>
                                                 </button>
                                             </TableCell>
                                             <TableCell className="p-2 align-top text-center">
@@ -601,5 +582,7 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
         </>
     );
 }
+
+    
 
     
