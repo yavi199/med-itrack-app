@@ -90,13 +90,26 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
         if (!userProfile) return;
 
         const { id, status } = study;
+        const { rol } = userProfile;
+        const modality = study.studies[0]?.modality;
         let nextStatus: string | null = null;
         
-        if (userProfile.rol === 'tecnologo' && status === 'Pendiente') {
+        if (rol === 'tecnologo' && status === 'Pendiente') {
             nextStatus = 'Completado';
-        } else if (userProfile.rol === 'transcriptora' && status === 'Completado') {
-            nextStatus = 'Leído';
+        } else if (rol === 'transcriptora') {
+            if (status === 'Pendiente' && modality === 'ECO') {
+                nextStatus = 'Completado';
+            } else if (status === 'Completado') {
+                nextStatus = 'Leído';
+            }
+        } else if (rol === 'administrador') {
+            if (status === 'Pendiente') {
+                nextStatus = 'Completado';
+            } else if (status === 'Completado') {
+                nextStatus = 'Leído';
+            }
         }
+
 
         if (nextStatus) {
             handleStatusChange(id, nextStatus);
@@ -229,15 +242,35 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
         if (!userProfile) return { edit: false, cancel: false, changeStatus: false, quickChange: false, quickChangeLabel: '' };
 
         const { rol } = userProfile;
+        const { status } = study;
+        const modality = study.studies[0]?.modality;
         const isAdmin = rol === 'administrador';
-        
-        const canQuickChange = 
-            (rol === 'tecnologo' && study.status === 'Pendiente') ||
-            (rol === 'transcriptora' && study.status === 'Completado');
-        
+
+        let canQuickChange = false;
         let quickChangeLabel = '';
-        if (rol === 'tecnologo' && study.status === 'Pendiente') quickChangeLabel = 'Completar';
-        if (rol === 'transcriptora' && study.status === 'Completado') quickChangeLabel = 'Marcar Leído';
+
+        if (isAdmin) {
+             if (status === 'Pendiente') {
+                canQuickChange = true;
+                quickChangeLabel = 'Completar';
+            } else if (status === 'Completado') {
+                canQuickChange = true;
+                quickChangeLabel = 'Marcar Leído';
+            }
+        } else if (rol === 'tecnologo') {
+            if (status === 'Pendiente') {
+                canQuickChange = true;
+                quickChangeLabel = 'Completar';
+            }
+        } else if (rol === 'transcriptora') {
+             if (status === 'Pendiente' && modality === 'ECO') {
+                canQuickChange = true;
+                quickChangeLabel = 'Completar (ECO)';
+            } else if (status === 'Completado') {
+                canQuickChange = true;
+                quickChangeLabel = 'Marcar Leído';
+            }
+        }
 
         return {
             edit: isAdmin,
