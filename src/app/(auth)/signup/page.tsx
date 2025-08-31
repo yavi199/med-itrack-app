@@ -49,13 +49,6 @@ export default function SignupPage() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
-  // In a real app, you would uncomment this to protect the route
-  // useEffect(() => {
-  //   if (userProfile && userProfile.rol !== 'administrador') {
-  //     router.push('/');
-  //   }
-  // }, [userProfile, router]);
-
   const handleRoleChange = (value: UserRole) => {
     setRol(value);
     if (value === 'administrador') {
@@ -93,7 +86,7 @@ export default function SignupPage() {
         nombre,
         rol,
         servicioAsignado,
-        subServicioAsignado, // This will be undefined for roles other than 'enfermero', which is correct.
+        subServicioAsignado,
         activo: true
       });
       toast({
