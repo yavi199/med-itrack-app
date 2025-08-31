@@ -39,7 +39,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (userDoc.exists()) {
           setUserProfile(userDoc.data() as UserProfile);
         } else {
-          setUserProfile(null);
+          // This can happen if user is created but firestore doc fails
+          // or right after signup before doc is created.
+          setUserProfile(null); 
         }
       } else {
         setUser(null);
@@ -66,7 +68,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
     
     await setDoc(doc(db, 'users', user.uid), newUserProfile);
-    setUserProfile(newUserProfile);
+    
+    // Set the user profile immediately in the context to avoid race conditions
+    setUserProfile(newUserProfile); 
+    
     return userCredential;
   };
 
