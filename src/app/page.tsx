@@ -123,16 +123,17 @@ export default function HomePage() {
   }, [user, userProfile]);
 
   useEffect(() => {
+    if (!userProfile) return;
     let filteredData = studies;
     const lowercasedFilter = searchTerm.toLowerCase();
     
     // Client-side filtering for roles
-    if (userProfile?.rol === 'enfermero') {
+    if (userProfile.rol === 'enfermero') {
         filteredData = filteredData.filter(item => 
             item.service === userProfile.servicioAsignado &&
             item.subService === userProfile.subServicioAsignado
         );
-    } else if (userProfile?.rol === 'tecnologo' || userProfile?.rol === 'transcriptora') {
+    } else if (userProfile.rol === 'tecnologo' || userProfile.rol === 'transcriptora') {
         filteredData = filteredData.filter(item => 
             item.studies[0].modality === userProfile.servicioAsignado
         );
