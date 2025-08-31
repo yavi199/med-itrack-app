@@ -71,15 +71,8 @@ export default function HomePage() {
   useEffect(() => {
     if (!user || !userProfile) return;
     
-    const queryConstraints: QueryConstraint[] = [orderBy("requestDate", "desc")];
-
-    // Role-based query filtering
-    if (userProfile.rol === 'enfermero') {
-        // Query only by main service to avoid complex index, will filter sub-service on client
-        queryConstraints.push(where("service", "==", userProfile.servicioAsignado));
-    }
-    
-    const q = query(collection(db, "studies"), ...queryConstraints);
+    // Always fetch all studies ordered by date
+    const q = query(collection(db, "studies"), orderBy("requestDate", "desc"));
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         let studiesData: Study[] = [];
@@ -119,11 +112,6 @@ export default function HomePage() {
             });
         });
 
-        // For nurses, apply the sub-service filter on the client-side
-        if (userProfile.rol === 'enfermero' && userProfile.subServicioAsignado) {
-            studiesData = studiesData.filter(s => s.subService === userProfile.subServicioAsignado);
-        }
-
         setStudies(studiesData);
         setLoading(false);
     }, (error) => {
@@ -137,9 +125,14 @@ export default function HomePage() {
   useEffect(() => {
     let filteredData = studies;
     const lowercasedFilter = searchTerm.toLowerCase();
-
-    // Client-side filtering for roles that need it (technologist, transcriber)
-    if (userProfile?.rol === 'tecnologo' || userProfile?.rol === 'transcriptora') {
+    
+    // Client-side filtering for roles
+    if (userProfile?.rol === 'enfermero') {
+        filteredData = filteredData.filter(item => 
+            item.service === userProfile.servicioAsignado &&
+            item.subService === userProfile.subServicioAsignado
+        );
+    } else if (userProfile?.rol === 'tecnologo' || userProfile?.rol === 'transcriptora') {
         filteredData = filteredData.filter(item => 
             item.studies[0].modality === userProfile.servicioAsignado
         );
