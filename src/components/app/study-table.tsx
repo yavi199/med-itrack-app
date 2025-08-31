@@ -94,16 +94,16 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
         const modality = study.studies[0]?.modality;
         let nextStatus: string | null = null;
         
-        if (rol === 'tecnologo' && status === 'Pendiente') {
-            nextStatus = 'Completado';
-        } else if (rol === 'transcriptora') {
-            if (status === 'Pendiente' && modality === 'ECO') {
+        if (rol === 'administrador') {
+            if (status === 'Pendiente') {
                 nextStatus = 'Completado';
             } else if (status === 'Completado') {
                 nextStatus = 'Leído';
             }
-        } else if (rol === 'administrador') {
-            if (status === 'Pendiente') {
+        } else if (rol === 'tecnologo' && status === 'Pendiente') {
+            nextStatus = 'Completado';
+        } else if (rol === 'transcriptora') {
+            if (status === 'Pendiente' && modality === 'ECO') {
                 nextStatus = 'Completado';
             } else if (status === 'Completado') {
                 nextStatus = 'Leído';
@@ -244,20 +244,33 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
         const { rol } = userProfile;
         const { status } = study;
         const modality = study.studies[0]?.modality;
-        const isAdmin = rol === 'administrador';
 
-        let canQuickChange = false;
-        let quickChangeLabel = '';
-
-        if (isAdmin) {
-             if (status === 'Pendiente') {
+        // Admin has all permissions, always.
+        if (rol === 'administrador') {
+            let canQuickChange = false;
+            let quickChangeLabel = '';
+            if (status === 'Pendiente') {
                 canQuickChange = true;
                 quickChangeLabel = 'Completar';
             } else if (status === 'Completado') {
                 canQuickChange = true;
                 quickChangeLabel = 'Marcar Leído';
             }
-        } else if (rol === 'tecnologo') {
+
+            return {
+                edit: true,
+                cancel: true,
+                changeStatus: true,
+                quickChange: canQuickChange,
+                quickChangeLabel,
+            };
+        }
+        
+        // Permissions for other roles
+        let canQuickChange = false;
+        let quickChangeLabel = '';
+
+        if (rol === 'tecnologo') {
             if (status === 'Pendiente') {
                 canQuickChange = true;
                 quickChangeLabel = 'Completar';
@@ -273,9 +286,9 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
         }
 
         return {
-            edit: isAdmin,
-            cancel: isAdmin || rol === 'tecnologo' || rol === 'transcriptora',
-            changeStatus: isAdmin,
+            edit: false, // Only admin can edit
+            cancel: rol === 'tecnologo' || rol === 'transcriptora',
+            changeStatus: false, // Only admin can change status from menu
             quickChange: canQuickChange,
             quickChangeLabel
         };
@@ -588,3 +601,5 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
         </>
     );
 }
+
+    
