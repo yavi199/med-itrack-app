@@ -80,8 +80,16 @@ export function NewRequestCard() {
             try {
                 const result = await extractOrder({ fileDataUri: dataUri });
                 setActiveData(result);
-                // For both admin and nurse, create the request directly
-                await handleCreateRequest(result);
+
+                if (userProfile?.rol === 'administrador') {
+                    setShowAdminChoice(true);
+                } else if (userProfile?.rol === 'enfermero') {
+                    await handleCreateRequest(result);
+                } else {
+                     toast({ variant: "destructive", title: "Acción no permitida", description: "Tu rol no permite crear solicitudes desde archivo." });
+                     resetState();
+                }
+
             } catch (error) {
                 toast({ variant: "destructive", title: "Error de Extracción", description: "No se pudo procesar el archivo. Intenta de nuevo." });
                 resetState();
@@ -604,5 +612,7 @@ export function NewRequestCard() {
         </>
     );
 }
+
+    
 
     
