@@ -53,7 +53,7 @@ export function AppHeader() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={`https://i.pravatar.cc/150?u=${user.uid}`} alt={userProfile?.nombre} />
+                      
                       <AvatarFallback>{getInitials(userProfile?.nombre || '')}</AvatarFallback>
                     </Avatar>
                   </Button>
