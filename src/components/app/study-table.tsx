@@ -224,7 +224,7 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
 
 
     const formatDate = (dateObj: { toDate: () => Date } | null) => {
-        if (!dateObj) return 'N/A';
+        if (!dateObj) return null;
         try {
             return format(dateObj.toDate(), "dd MMM, HH:mm");
         } catch (error) {
@@ -379,6 +379,10 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                     const age = getAge(req.patient.birthDate);
                                     const permissions = canPerformAction(req);
                                     
+                                    const requestDateFmt = formatDate(req.requestDate);
+                                    const completionDateFmt = formatDate(req.completionDate);
+                                    const readingDateFmt = formatDate(req.readingDate);
+                                    
                                     return (
                                         <TableRow key={req.id} className="text-sm">
                                             <TableCell className="p-1 align-middle h-full">
@@ -418,10 +422,7 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                                     <Badge variant="outline" className="flex items-center justify-center w-12 h-10 border-2 font-semibold rounded-md text-sm">{study.modality}</Badge>
                                                     <div>
                                                         <div className="uppercase text-sm leading-tight font-bold">
-                                                            {study.nombre}
-                                                        </div>
-                                                        <div className="text-sm">
-                                                            <span className="text-gray-500 font-bold">CUPS: {study.cups}</span>
+                                                            {study.nombre} <span className="text-gray-500 font-bold">CUPS: {study.cups}</span>
                                                         </div>
                                                         <div className="text-sm">
                                                             DX: {req.diagnosis.code} - {req.diagnosis.description}
@@ -435,13 +436,9 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                                 </div>
                                             </TableCell>
                                             <TableCell className="p-2 align-top text-center text-xs space-y-1">
-                                                <div className="font-medium text-red-600">{formatDate(req.requestDate)}</div>
-                                                {req.completionDate && (
-                                                    <div className="font-medium text-green-600">{formatDate(req.completionDate)}</div>
-                                                )}
-                                                {req.readingDate && (
-                                                    <div className="font-medium text-blue-600">{formatDate(req.readingDate)}</div>
-                                                )}
+                                                {requestDateFmt && <div className="font-medium text-red-600">{requestDateFmt}</div>}
+                                                {completionDateFmt && <div className="font-medium text-green-600">{completionDateFmt}</div>}
+                                                {readingDateFmt && <div className="font-medium text-blue-600">{readingDateFmt}</div>}
                                             </TableCell>
                                             <TableCell className="p-1 text-right align-top">
                                                 <AlertDialog>
@@ -607,3 +604,4 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
     
 
     
+
