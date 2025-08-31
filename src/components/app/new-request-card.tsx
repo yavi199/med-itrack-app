@@ -159,7 +159,7 @@ export function NewRequestCard() {
             if (manualData) { // From manual entry
                 service = manualData.service;
                 subService = manualData.subService;
-            } else if (userProfile.rol === 'enfermero') { // From file upload for nurse
+            } else if (userProfile.rol === 'enfermero' && 'servicioAsignado' in userProfile && 'subServicioAsignado' in userProfile) { // From file upload for nurse
                 service = userProfile.servicioAsignado as GeneralService;
                 subService = userProfile.subServicioAsignado;
             } else {
