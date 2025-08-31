@@ -80,11 +80,8 @@ export function NewRequestCard() {
             try {
                 const result = await extractOrder({ fileDataUri: dataUri });
                 setActiveData(result);
-                if (userProfile?.rol === 'administrador') {
-                    setShowAdminChoice(true);
-                } else {
-                    await handleCreateRequest(result);
-                }
+                // For both admin and nurse, create the request directly
+                await handleCreateRequest(result);
             } catch (error) {
                 toast({ variant: "destructive", title: "Error de Extracción", description: "No se pudo procesar el archivo. Intenta de nuevo." });
                 resetState();
@@ -159,17 +156,14 @@ export function NewRequestCard() {
             if (manualData) { // From manual entry
                 service = manualData.service;
                 subService = manualData.subService;
-            } else if (userProfile.rol === 'enfermero' && 'servicioAsignado' in userProfile && 'subServicioAsignado' in userProfile) { // From file upload for nurse
+            } else if ((userProfile.rol === 'enfermero' || userProfile.rol === 'administrador') && 'servicioAsignado' in userProfile && 'subServicioAsignado' in userProfile) { // From file upload for nurse or admin
                 service = userProfile.servicioAsignado as GeneralService;
                 subService = userProfile.subServicioAsignado;
             } else {
-                 // For other roles like admin, or cases where it's not defined
-                 // We can assign a default or handle as an error. Let's use a default for now.
-                 // This part might need more specific business logic.
-                 const firstStudyModality = dataToSave.studies[0]?.nombre.toUpperCase();
-                 if (firstStudyModality?.includes('TOMOGRAFIA') || firstStudyModality?.includes('TAC')) service = 'URG';
-                 else service = 'HOSP'; // Default service
-                 subService = undefined; // No sub-service
+                 // Fallback for other roles or misconfigured profiles.
+                 toast({ variant: "destructive", title: "Perfil no configurado", description: "El perfil de usuario no tiene un servicio asignado." });
+                 setIsCreating(false);
+                 return;
             }
 
 
@@ -610,3 +604,5 @@ export function NewRequestCard() {
         </>
     );
 }
+
+    
