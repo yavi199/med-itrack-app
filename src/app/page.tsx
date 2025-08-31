@@ -125,7 +125,6 @@ export default function HomePage() {
   useEffect(() => {
     if (!userProfile) return;
     let filteredData = studies;
-    const lowercasedFilter = searchTerm.toLowerCase();
     
     // Client-side filtering for roles
     if (userProfile.rol === 'enfermero') {
@@ -137,8 +136,12 @@ export default function HomePage() {
         filteredData = filteredData.filter(item => 
             item.studies[0].modality === userProfile.servicioAsignado
         );
+    } else if (userProfile.rol === 'administrador') {
+        // No role-based filtering for admin
     }
 
+
+    const lowercasedFilter = searchTerm.toLowerCase();
     // Filter by search term
     if (searchTerm) {
         filteredData = filteredData.filter(item => {
@@ -203,9 +206,9 @@ export default function HomePage() {
     setSummary(newSummary);
     setServiceSummary(newServiceSummary);
 
-  }, [searchTerm, studies, activeFilters, dateRange, userProfile]);
+  }, [searchTerm, studies, activeFilters, dateRange]);
 
-  if (authLoading || !user || !userProfile) {
+  if (authLoading || !user || !userProfile || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
