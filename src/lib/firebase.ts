@@ -10,9 +10,9 @@ import { getAuth } from "firebase/auth";
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 export const firebaseConfig = {
   apiKey: "AIzaSyBI96qh9EbuO0h8F1MBAYKwOloCrxaf6rk",
-  authDomain: "med-itrack199.firebaseapp.com",
-  projectId: "med-itrack199",
-  storageBucket: "med-itrack199.firebasestorage.app",
+  authDomain: "med-itrack-nduik.firebaseapp.com",
+  projectId: "med-itrack-nduik",
+  storageBucket: "med-itrack-nduik.appspot.com",
   messagingSenderId: "324429977043",
   appId: "1:324429977043:web:e3092fb39e1e04751bcb26",
   measurementId: "G-C37WHTVBJ7"

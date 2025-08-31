@@ -7,7 +7,7 @@
     "indexes": "firestore.indexes.json"
   },
   "apphosting": {
-    "backendId": "med-itrack199backend",
+    "backendId": "med-itrack-nduik",
     "rootDir": "/",
     "ignore": [
       "node_modules",
