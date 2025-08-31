@@ -65,7 +65,7 @@ type StudyTableProps = {
 
 const statusConfig = {
     'Pendiente': { icon: Clock, className: 'border-[hsl(350,100%,23.8%)] text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Pendiente', style: { backgroundColor: 'hsl(350 100% 23.8%)' } },
-    'Completado': { icon: CheckCircle, className: 'border-[hsl(120,100%,24.6%)] text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Completado', style: { backgroundColor: 'hsl(120 100% 24.6%)' } },
+    'Completado': { icon: CheckCircle, className: 'border-[hsl(99,100%,13.1%)] text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Completado', style: { backgroundColor: 'hsl(99 100% 13.1%)' } },
     'Leído': { icon: BookOpenCheck, className: 'border-[hsl(241,100%,21.9%)] text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Leído', style: { backgroundColor: 'hsl(241 100% 21.9%)' } },
     'Cancelado': { icon: XCircle, className: 'bg-orange-500 dark:bg-orange-600 border-orange-500 dark:border-orange-600 text-white dark:text-white', iconClassName: 'text-white dark:text-white', label: 'Cancelado' },
 };
@@ -425,7 +425,7 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                                     <div>
                                                         <div className="uppercase font-bold text-sm">
                                                             {study.nombre}
-                                                            <span className="font-semibold text-gray-500 ml-2">CUPS: {study.cups}</span>
+                                                            <span className="font-bold text-gray-500 ml-2">CUPS: {study.cups}</span>
                                                         </div>
                                                         <div className="text-sm">
                                                             <span>CIE10: {req.diagnosis.code}</span>
@@ -440,7 +440,7 @@ export function StudyTable({ studies, loading, searchTerm, setSearchTerm, active
                                             </TableCell>
                                             <TableCell className="p-2 align-top text-center text-xs space-y-1">
                                                 {requestDateFmt && <div className="font-medium" style={{color: 'hsl(350 100% 23.8%)'}}>{requestDateFmt}</div>}
-                                                {completionDateFmt && <div className="font-medium" style={{color: 'hsl(120 100% 24.6%)'}}>{completionDateFmt}</div>}
+                                                {completionDateFmt && <div className="font-medium" style={{color: 'hsl(99 100% 13.1%)'}}>{completionDateFmt}</div>}
                                                 {readingDateFmt && <div className="font-medium" style={{color: 'hsl(241 100% 21.9%)'}}>{readingDateFmt}</div>}
                                             </TableCell>
                                             <TableCell className="p-1 text-right align-top">
