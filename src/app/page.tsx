@@ -68,9 +68,17 @@ export default function HomePage() {
   }, [user, authLoading, router]);
 
   useEffect(() => {
+    if (!userProfile) return;
+
+    if (userProfile.rol === 'enfermero' && userProfile.servicioAsignado) {
+      setActiveFilters(prev => ({ ...prev, services: [userProfile.servicioAsignado as GeneralService] }));
+    }
+  }, [userProfile]);
+
+  useEffect(() => {
     if (!user) return;
     
-    // Always fetch all studies ordered by date, as filtering by role will happen client-side
+    // Always fetch all studies ordered by date
     const q = query(collection(db, "studies"), orderBy("requestDate", "desc"));
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -100,6 +108,7 @@ export default function HomePage() {
                     nombre: firstStudy.nombre || 'N/A',
                     cups: firstStudy.cups || 'N/A',
                     modality: modality,
+                    details: firstStudy.details
                 }],
                 diagnosis: {
                     code: data.diagnosis?.code || 'N/A',
@@ -135,7 +144,7 @@ export default function HomePage() {
         filteredData = filteredData.filter(item => 
             item.studies[0].modality === userProfile.servicioAsignado
         );
-    } // No role-based filtering for admin, they see everything
+    } // No role-based filtering for admin, they see everything based on active filters
 
     const lowercasedFilter = searchTerm.toLowerCase();
     // Filter by search term
