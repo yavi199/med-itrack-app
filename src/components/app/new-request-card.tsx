@@ -154,15 +154,24 @@ export function NewRequestCard() {
         try {
             // Determine service and subservice
             let service: GeneralService;
-            let subService: string;
+            let subService: string | undefined;
 
             if (manualData) { // From manual entry
                 service = manualData.service;
                 subService = manualData.subService;
-            } else { // From file upload
+            } else if (userProfile.rol === 'enfermero') { // From file upload for nurse
                 service = userProfile.servicioAsignado as GeneralService;
-                subService = userProfile.subServicioAsignado!;
+                subService = userProfile.subServicioAsignado;
+            } else {
+                 // For other roles like admin, or cases where it's not defined
+                 // We can assign a default or handle as an error. Let's use a default for now.
+                 // This part might need more specific business logic.
+                 const firstStudyModality = dataToSave.studies[0]?.nombre.toUpperCase();
+                 if (firstStudyModality?.includes('TOMOGRAFIA') || firstStudyModality?.includes('TAC')) service = 'URG';
+                 else service = 'HOSP'; // Default service
+                 subService = undefined; // No sub-service
             }
+
 
             const studyData = {
                 patient: { ...dataToSave.patient },
