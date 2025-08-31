@@ -104,7 +104,7 @@ export default function SignupPage() {
       <Card className="w-full max-w-lg shadow-2xl">
         <CardHeader className="text-center">
             <div className="flex justify-center items-center gap-3 mb-4">
-                 <Image src="https://firebasestorage.googleapis.com/v0/b/med-itrack-nduik.appspot.com/o/app-logo.png?alt=media" alt="Med-iTrack Logo" width={56} height={56} className="h-14 w-14" />
+                 <Image src="https://firebasestorage.googleapis.com/v0/b/med-itrack-nduik.appspot.com/o/app-logo.png?alt=media" alt="Med-iTrack Logo" width={56} height={56} className="h-14 w-14" unoptimized={true} />
             </div>
           <CardTitle className="text-2xl">Crear Nuevo Usuario</CardTitle>
           <CardDescription>Registra un nuevo miembro del equipo</CardDescription>

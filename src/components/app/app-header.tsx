@@ -37,7 +37,7 @@ export function AppHeader() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <Link href="/" className="flex items-center gap-3">
-            <Image src="https://firebasestorage.googleapis.com/v0/b/med-itrack-nduik.appspot.com/o/app-logo.png?alt=media" alt="Med-iTrack Logo" width={48} height={48} className="h-12 w-12" />
+            <Image src="https://firebasestorage.googleapis.com/v0/b/med-itrack-nduik.appspot.com/o/app-logo.png?alt=media" alt="Med-iTrack Logo" width={48} height={48} className="h-12 w-12" unoptimized={true} />
             <div className="grid">
               <h1 className="text-2xl font-bold font-headline text-gray-800 dark:text-gray-200">
                 Med-iTrack
