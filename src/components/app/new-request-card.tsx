@@ -4,10 +4,9 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, UploadCloud, Loader2, FileDown, User, FileText, X } from "lucide-react";
+import { Search, UploadCloud, Loader2, User, X } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { extractOrder, ExtractOrderOutput } from '@/ai/flows/extract-order-flow';
-import { generateAuthorizationPdf } from '@/ai/flows/generate-authorization-pdf-flow';
 import { cn } from '@/lib/utils';
 import {
     AlertDialog,
@@ -38,13 +37,10 @@ export function NewRequestCard() {
     const [dragging, setDragging] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
-    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
     const [activeData, setActiveData] = useState<ExtractOrderOutput | null>(null);
     const [showManualEntry, setShowManualEntry] = useState(false);
     const [showAdminChoice, setShowAdminChoice] = useState(false);
-    const [showAuthorizationOptions, setShowAuthorizationOptions] = useState(false);
     const [patientId, setPatientId] = useState('');
-    const [pdfGenerated, setPdfGenerated] = useState(false);
     const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
     const [showMultiUploadDialog, setShowMultiUploadDialog] = useState(false);
 
@@ -72,7 +68,6 @@ export function NewRequestCard() {
             return;
         }
 
-        setPdfGenerated(false);
         const reader = new FileReader();
         reader.onload = async (e) => {
             const dataUri = e.target?.result as string;
@@ -140,9 +135,7 @@ export function NewRequestCard() {
         setActiveData(null);
         setShowManualEntry(false);
         setPatientId('');
-        setPdfGenerated(false);
         setShowAdminChoice(false);
-        setShowAuthorizationOptions(false);
         setUploadedFiles([]);
         setShowMultiUploadDialog(false);
     }
@@ -187,15 +180,6 @@ export function NewRequestCard() {
 
             const docRef = await addDoc(collection(db, "studies"), studyData);
             
-            if (pdfGenerated) {
-                await addDoc(collection(db, "authorizations"), {
-                    studyId: docRef.id,
-                    patientId: dataToSave.patient.id,
-                    patientFullName: dataToSave.patient.fullName,
-                    studyName: dataToSave.studies[0]?.nombre || 'N/A',
-                    generatedAt: serverTimestamp(),
-                });
-            }
              if (!isMulti) {
                 toast({ title: "Solicitud Creada", description: `Solicitud para ${dataToSave.patient?.fullName} ha sido creada con el ID: ${docRef.id}.` });
                 resetState();
@@ -238,44 +222,7 @@ export function NewRequestCard() {
         setIsCreating(false);
         resetState();
     };
-    
-    const handleGenerateAuthorization = async (type: 'eps' | 'own') => {
-        if (!activeData) return;
 
-        if (type === 'eps') {
-            const { patient, studies, diagnosis } = activeData;
-            const subject = `Solicitud de Autorización para ${patient.fullName} - ID ${patient.id}`;
-            const body = `Buen día,\n\nSolicito amablemente la autorización para el siguiente procedimiento para el paciente ${patient.fullName} (ID: ${patient.id}):\n\n- Estudio: ${studies[0].nombre}\n- CUPS: ${studies[0].cups}\n- Diagnóstico: ${diagnosis.description} (${diagnosis.code})\n\nAdjunto la orden médica.\n\nQuedo atento a su respuesta.\n\nSaludos cordiales.`;
-            window.location.href = `mailto:autorizaciones@eps.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            toast({ title: "Abriendo cliente de correo", description: "Prepara el correo para enviarlo a la EPS." });
-        } else if (type === 'own') {
-            setIsGeneratingPdf(true);
-            toast({ title: "Generando Autorización", description: `Se está creando el PDF para ${activeData.patient.fullName}.` });
-            try {
-                const { pdfBase64 } = await generateAuthorizationPdf(activeData);
-                const link = document.createElement('a');
-                link.href = `data:application/pdf;base64,${pdfBase64}`;
-                link.download = `Autorizacion-propia-${activeData.patient.id}.pdf`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                toast({ title: "PDF Descargado", description: "El archivo de autorización se ha descargado correctamente.", action: <FileDown /> });
-                setPdfGenerated(true);
-                setShowAuthorizationOptions(false);
-                setShowAdminChoice(true);
-            } catch (error) {
-                toast({ variant: "destructive", title: "Error al Generar PDF", description: "No se pudo crear el archivo PDF. Por favor, intenta de nuevo." });
-            } finally {
-                setIsGeneratingPdf(false);
-            }
-        }
-    };
-
-    const openAuthorizationOptions = () => {
-        setShowAdminChoice(false);
-        setShowAuthorizationOptions(true);
-    }
-    
     const handleManualSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
@@ -376,48 +323,19 @@ export function NewRequestCard() {
                         <AlertDialogTitle>Orden Procesada Exitosamente</AlertDialogTitle>
                         <AlertDialogDescription>
                             Se ha extraído la información para <span className="font-bold">{activeData?.patient.fullName}</span>.
-                             {pdfGenerated && <span className="block mt-2 font-semibold text-green-600">✓ PDF de autorización ya generado.</span>}
-                            ¿Qué deseas hacer a continuación?
+                            Ahora puede crear la solicitud.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4">
-                        <Button variant="outline" className="h-20 flex-col gap-2" onClick={openAuthorizationOptions}>
-                            <FileText />
-                            Generar Autorización
-                        </Button>
-                         <Button variant="outline" className="h-20 flex-col gap-2" onClick={() => handleCreateRequest(activeData)}>
-                             <User />
+                    <AlertDialogFooter>
+                        <Button variant="ghost" onClick={resetState} disabled={isCreating}>Cancelar</Button>
+                        <Button onClick={() => handleCreateRequest(activeData)} disabled={isCreating}>
+                            {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Crear Solicitud
                         </Button>
-                    </div>
-                    <AlertDialogFooter>
-                        <Button variant="ghost" onClick={resetState}>Cancelar</Button>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
             
-            <AlertDialog open={showAuthorizationOptions} onOpenChange={(open) => {if (!open) resetState()}}>
-                 <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Generar Autorización</AlertDialogTitle>
-                        <AlertDialogDescription>
-                             <div>Paciente: <span className="font-bold">{activeData?.patient.fullName}</span></div>
-                             <div>Estudio: <span className="font-bold">{activeData?.studies[0]?.nombre}</span></div>
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter className="sm:justify-between gap-2 pt-4">
-                         <Button variant="outline" onClick={() => handleGenerateAuthorization('eps')} disabled={isGeneratingPdf}>
-                            {isGeneratingPdf && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Solicitar a EPS
-                        </Button>
-                        <Button onClick={() => handleGenerateAuthorization('own')} disabled={isGeneratingPdf}>
-                            {isGeneratingPdf && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Autorización Propia
-                        </Button>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-
              <AlertDialog open={showMultiUploadDialog} onOpenChange={(open) => { if (!open) resetState() }}>
                 <AlertDialogContent className="max-w-2xl max-h-[90vh]">
                     <AlertDialogHeader>
