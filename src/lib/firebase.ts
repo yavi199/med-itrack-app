@@ -24,7 +24,7 @@ const getFirebaseConfig = (): FirebaseOptions => {
   }
 
   // Fallback for client-side or when server-side env is not set.
-  // These are your public environment variables.
+  // These are your public environment variables from .env
   return {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
